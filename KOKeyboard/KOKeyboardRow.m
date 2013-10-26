@@ -102,6 +102,7 @@ static BOOL isPhone;
 		topMargin = 0;
 		buttonSpacing = 6;
 		buttonCount = 7;
+		buttonWidth = 100;
 		//keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
 		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
 	} else {
@@ -113,13 +114,13 @@ static BOOL isPhone;
 
 		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
     }
-	buttonWidth = (barWidth - 2 * leftMargin - (buttonCount - 1) * buttonSpacing) / buttonCount;
-	leftMargin = (barWidth - buttonWidth * buttonCount - buttonSpacing * (buttonCount - 1)) / 2;
+buttonWidth = (barWidth - 2 * leftMargin - (buttonCount - 1) * buttonSpacing) / buttonCount;
+//leftMargin = (barWidth - buttonWidth * buttonCount - buttonSpacing * (buttonCount - 1)) / 2;
 
 	NSLayoutConstraint *lc;
 	KOSwipeButton *b;
 	UIView *c = v;
-    for (int i = 0; i < 7; i++) { // buttonCount
+    for (int i = 0; i < 5; i++) { // buttonCount
 #if 1
 		NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
 		
@@ -132,7 +133,7 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 
 #if 1
 
-#if 0
+#if 1
         b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(0, 0, buttonWidth, buttonHeight)];
 		assert(!b.autoresizingMask);
 		[b setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -140,7 +141,7 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 		[c addSubview:b];
 		
 		// SET UP IMAGE
-		
+#if 0
 		// setup inner first
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0];
 		[b addConstraint:lc];
@@ -158,65 +159,38 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 		[c addConstraint:lc];
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
 		[c addConstraint:lc];
+#endif
+
 #else
 		b = [UIView new];
 		b.backgroundColor = [UIColor yellowColor];
 		[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 		[c addSubview:b];
-
+#endif
 
 #if 1
 		// setup inner first
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:10]; // FIX ME
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0]; // FIX ME
 		[b addConstraint:lc];
-//lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth];
-//[b addConstraint:lc];
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonHeight];
 		[b addConstraint:lc];
 		// Top and bottom
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
 		[c addConstraint:lc];
 
-// CRASHES?!?!?
-//lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:-verticalMargin];
-//[c addConstraint:lc];
 		// left and right
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
 		lc.priority = 800;
 		[c addConstraint:lc];
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
 		[c addConstraint:lc];
-		
-//lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
-//lc.priority = 800;
-//[c addConstraint:lc];
-
-
-#else // CRASHES
-		// setup inner first
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0];
-		[b addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth];
-		[b addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonHeight];
-		[b addConstraint:lc];
-		// Top and bottom
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
-		[c addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:-verticalMargin];
-		[c addConstraint:lc];
-		// left and right
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
-		[c addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
-		[c addConstraint:lc];
-#endif
 
 #endif
 
 		//lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin-1]; // NSLayoutRelationEqual
 		//[c addConstraint:lc];
 #else
+xxxx
 		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin];
 		[c addConstraint:lc];
 #endif
