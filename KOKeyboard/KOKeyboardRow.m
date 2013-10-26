@@ -42,14 +42,28 @@
 
 @end
 
-@implementation KOKeyboardRow
+static BOOL isPhone;
 
+@implementation KOKeyboardRow
 @synthesize textView, startLocation;
 
-+ (void)applyToTextView:(UITextView *)t
++ (void)initialize
 {
-    int barHeight = 72;
-    int barWidth = 768;
+	isPhone = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone;
+}
+
++ (KOKeyboardRow *)applyToTextView:(UITextView *)t
+{
+	int barHeight;
+	int barWidth;
+
+	if(isPhone) {
+		barHeight = 52;
+		barWidth = 320;
+	} else {
+		barHeight = 72;
+		barWidth = 768;
+	}
     
     KOKeyboardRow *v = [[KOKeyboardRow alloc] initWithFrame:CGRectMake(0, 0, barWidth, barHeight)];
     v.backgroundColor = [UIColor colorWithRed:156/255. green:155/255. blue:166/255. alpha:1.];
@@ -66,18 +80,37 @@
     border2.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [v addSubview:border2];
     
-    int buttonHeight = 60;
-    int leftMargin = 3;
-    int topMargin = 1;
-    int buttonSpacing = 6;
-    int buttonCount = 11;
-    int buttonWidth = (barWidth - 2 * leftMargin - (buttonCount - 1) * buttonSpacing) / buttonCount;
-    leftMargin = (barWidth - buttonWidth * buttonCount - buttonSpacing * (buttonCount - 1)) / 2;
-    
-    NSString *keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
-    
+    int buttonHeight;
+    int leftMargin;
+    int topMargin;
+    int buttonSpacing;
+    int buttonCount;
+	NSString *keys;
+	int buttonWidth;
+
+	if(isPhone) {
+		buttonHeight = 50;
+		leftMargin = 3;
+		topMargin = 0;
+		buttonSpacing = 6;
+		buttonCount = 7;
+		keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
+	} else {
+		buttonHeight = 60;
+		leftMargin = 3;
+		topMargin = 1;
+		buttonSpacing = 6;
+		buttonCount = 11;
+
+		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
+    }
+	buttonWidth = (barWidth - 2 * leftMargin - (buttonCount - 1) * buttonSpacing) / buttonCount;
+	leftMargin = (barWidth - buttonWidth * buttonCount - buttonSpacing * (buttonCount - 1)) / 2;
+
+	
     for (int i = 0; i < buttonCount; i++) {
         KOSwipeButton *b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(leftMargin + i * (buttonSpacing + buttonWidth), topMargin + (barHeight - buttonHeight) / 2, buttonWidth, buttonHeight)];
+NSLog(@"BUTTON FRAME: %@", NSStringFromCGRect(b.frame));
         b.keys = [keys substringWithRange:NSMakeRange(i * 5, 5)];
         b.delegate = v;
         b.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
@@ -85,12 +118,25 @@
     }
     
     t.inputAccessoryView = v;
+	return v;
 }
 
 - (void)insertText:(NSString *)text
 {
-    [textView insertText:text];
-} 
+	if ([textView.delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementText:)]) {
+		// Ask textView'delegate whether we should change the text
+		NSRange selectedRange = textView.selectedRange;
+		BOOL shouldInsert = [textView.delegate textView:textView shouldChangeTextInRange:selectedRange replacementText:text];
+		if (shouldInsert) {
+			[textView insertText:text];
+			// also notify someone interested in this textview
+			[[NSNotificationCenter defaultCenter] postNotificationName:UITextViewTextDidChangeNotification object:textView];
+		}
+	} else {
+        [textView insertText:text];
+    }
+
+}
 
 - (void)trackPointStarted
 {

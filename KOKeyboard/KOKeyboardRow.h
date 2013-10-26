@@ -1,5 +1,5 @@
 //
-//  ExtraKeyboardRow.h
+//  KOKeyboardRow.h
 //  KeyboardTest
 //
 //  Created by Kuba on 28.06.12.
@@ -32,11 +32,9 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
-
 @interface KOKeyboardRow : UIView
 
-+ (void)applyToTextView:(UITextView *)textView;
++ (KOKeyboardRow *)applyToTextView:(UITextView *)textView;
 - (void)trackPointMovedX:(int)xdiff Y:(int)ydiff selecting:(BOOL)selecting;
 - (void)trackPointStarted;
 

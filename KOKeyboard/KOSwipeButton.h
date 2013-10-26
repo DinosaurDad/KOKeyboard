@@ -32,10 +32,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
-
 @interface KOSwipeButton : UIView
-
 @property (nonatomic, weak) id delegate;
 
 - (void)setKeys:(NSString *)newKeys;

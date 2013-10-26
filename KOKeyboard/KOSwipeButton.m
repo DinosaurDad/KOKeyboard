@@ -68,13 +68,19 @@
 {
     self = [super initWithFrame:frame];
     
-    UIImage *bgImg1 = [[UIImage imageNamed:@"key.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 0, 9)];
-    UIImage *bgImg2 = [[UIImage imageNamed:@"key-pressed.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 0, 9)];
-    bgView = [[UIImageView alloc] initWithFrame:self.bounds];
+    UIImage *bgImg1 = [[UIImage imageNamed:@"key.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(9, 9, 9, 9)];
+    UIImage *bgImg2 = [[UIImage imageNamed:@"key-pressed.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 9, 9)];
+//CGRect bounds = self.bounds;
+//bounds.size.height -=10;
+bgView = [[UIImageView alloc] initWithFrame:self.bounds];
+//bgView.contentMode = UIViewContentModeScaleAspectFit; // UIViewContentModeScaleToFill;
+//bgView.clipsToBounds = YES;
+
     [bgView setImage:bgImg1];
     [bgView setHighlightedImage:bgImg2];
     bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self addSubview:bgView];
+NSLog(@"IMAGE FRAME: %@", NSStringFromCGRect(bgView.frame));
     
     int labelWidth = 20;
     int labelHeight = 20;
@@ -88,7 +94,7 @@
     UIFont *f = [UIFont systemFontOfSize:15];
     
     UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(leftInset, topInset, labelWidth, labelHeight)];
-    l.textAlignment = UITextAlignmentLeft;
+    l.textAlignment = NSTextAlignmentLeft;
     l.text = @"1";
     l.font = f;
     [self addSubview:l];
@@ -97,7 +103,7 @@
     [labels addObject:l];
     
     l = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - labelWidth - rightInset, topInset, labelWidth, labelHeight)];
-    l.textAlignment = UITextAlignmentRight;
+    l.textAlignment = NSTextAlignmentRight;
     l.text = @"2";
     l.font = f;
     l.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
@@ -107,7 +113,7 @@
     [labels addObject:l];
     
     l = [[UILabel alloc] initWithFrame:CGRectIntegral(CGRectMake((self.frame.size.width - labelWidth - leftInset - rightInset) / 2 + leftInset, (self.frame.size.height - labelHeight - topInset - bottomInset) / 2 + topInset, labelWidth, labelHeight))];
-    l.textAlignment = UITextAlignmentCenter;
+    l.textAlignment = NSTextAlignmentCenter;
     l.text = @"3";
     l.font = f;
     l.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -117,7 +123,7 @@
     [labels addObject:l];
     
     l = [[UILabel alloc] initWithFrame:CGRectMake(leftInset, (self.frame.size.height - labelHeight - bottomInset), labelWidth, labelHeight)];
-    l.textAlignment = UITextAlignmentLeft;
+    l.textAlignment = NSTextAlignmentLeft;
     l.text = @"4";
     l.font = f;
     [self addSubview:l];
@@ -126,7 +132,7 @@
     [labels addObject:l];
     
     l = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width - labelWidth - rightInset, (self.frame.size.height - labelHeight - bottomInset), labelWidth, labelHeight)];
-    l.textAlignment = UITextAlignmentRight;
+    l.textAlignment = NSTextAlignmentRight;
     l.text = @"5";
     l.font = f;
     l.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
@@ -270,6 +276,11 @@
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [self selectLabel:-1];
+}
+
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+{
+    return (self.hidden) ? NO : [super pointInside:point withEvent:event];
 }
 
 @end
