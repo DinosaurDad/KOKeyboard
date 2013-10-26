@@ -77,6 +77,7 @@ static BOOL isPhone;
 	[v setTranslatesAutoresizingMaskIntoConstraints:YES];
 
     UIView *border1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, barWidth, 1)];
+	border1.tag = 100;
     border1.backgroundColor = [UIColor colorWithRed:51/255. green:51/255. blue:51/255. alpha:1.];
     border1.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [v addSubview:border1];
@@ -84,6 +85,7 @@ static BOOL isPhone;
     UIView *border2 = [[UIView alloc] initWithFrame:CGRectMake(0, 1, barWidth, 1)];
     border2.backgroundColor = [UIColor colorWithRed:191/255. green:191/255. blue:191/255. alpha:1.];
     border2.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+	border2.tag = 101;
     [v addSubview:border2];
     
     int buttonHeight;
@@ -100,7 +102,8 @@ static BOOL isPhone;
 		topMargin = 0;
 		buttonSpacing = 6;
 		buttonCount = 7;
-		keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
+		//keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
+		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
 	} else {
 		buttonHeight = 60;
 		leftMargin = 3;
@@ -261,6 +264,8 @@ NSLog(@"V: %@", [v constraints]);
 	lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
 	[v addConstraint:lc];
 
+
+#if 0
 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^
     {
 		NSLog(@"KEY VIEW FRAME: %@", NSStringFromCGRect(v.frame));
@@ -270,6 +275,25 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
 
     } );
 	[v setNeedsUpdateConstraints];
+#endif
+
+__block UIView *firstView;
+[v.subviews enumerateObjectsUsingBlock:^(UIView *enclosingView, NSUInteger idx, BOOL *stop)
+	{
+		assert(enclosingView);
+		if(enclosingView.tag >= 100) return;
+		NSLog(@"BUTTON: %@ subviews: %@", enclosingView, enclosingView.subviews);
+	
+		UIView *button = [enclosingView.subviews lastObject];
+		assert(button);
+		if(!firstView) {
+			firstView = button;
+		} else {
+			NSLayoutConstraint *lc = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+			[v addConstraint:lc];
+		}
+		
+	} ];
 
     t.inputAccessoryView = v;
 	return v;
