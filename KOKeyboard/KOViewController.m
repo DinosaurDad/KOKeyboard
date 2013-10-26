@@ -62,8 +62,10 @@
 	
 	NSLog(@"WILL ANIMATE!");
 	
-	UIView *sv = [kov.subviews lastObject];
-	[sv removeFromSuperview];
+	[kov switchToOrientation:interfaceOrientation];
+
+	//UIView *sv = [kov.subviews lastObject];
+	//[sv removeFromSuperview];
 }
 
 

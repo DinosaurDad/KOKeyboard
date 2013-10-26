@@ -56,7 +56,9 @@
 #define TIME_INTERVAL_FOR_DOUBLE_TAP 0.4
 
 @implementation KOSwipeButton
-
+{
+	BOOL didSetup;
+}
 @synthesize labels, touchBeginPoint, selectedLabel, delegate, bgView, trackPoint, tabButton, selecting, firstTapDate, blueImage, pressedImage, foregroundView, blueFgImage, pressedFgImage;
 
 - (void)setFrame:(CGRect)frame
@@ -64,10 +66,28 @@
     [super setFrame:frame];
 }
 
-- (id)initWithFrame:(CGRect)frame
+- (instancetype)init{
+	if((self = [super init])) {
+		[self setup];
+	}
+	return self;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame
 {
-    self = [super initWithFrame:frame];
-    
+    if((self = [super initWithFrame:frame])) {
+		[self setup];
+	}
+	return self;
+}
+
+- (void)setup
+{
+	if(didSetup) {
+		NSLog(@"YIKES: did setup!");
+		return;
+	}
+	
     UIImage *bgImg1 = [[UIImage imageNamed:@"key.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(9, 9, 9, 9)];
     UIImage *bgImg2 = [[UIImage imageNamed:@"key-pressed.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 9, 9)];
 //CGRect bounds = self.bounds;
@@ -142,8 +162,7 @@ NSLog(@"IMAGE FRAME: %@", NSStringFromCGRect(bgView.frame));
     [labels addObject:l];
     
     firstTapDate = [[NSDate date] dateByAddingTimeInterval:-1];
-    
-    return self;
+	didSetup = YES;
 }
 
 - (void)setKeys:(NSString *)newKeys
