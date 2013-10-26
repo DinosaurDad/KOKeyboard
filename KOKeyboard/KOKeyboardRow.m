@@ -47,6 +47,16 @@ static BOOL isPhone;
 @implementation KOKeyboardRow
 @synthesize textView, startLocation;
 
++ (BOOL)requiresConstraintBasedLayout
+{
+	return YES;
+}
+
+//- (BOOL)translatesAutoresizingMaskIntoConstraints
+//{
+//	return NO;
+//}
+
 + (void)initialize
 {
 	isPhone = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone;
@@ -67,9 +77,10 @@ static BOOL isPhone;
     
     KOKeyboardRow *v = [[KOKeyboardRow alloc] initWithFrame:CGRectMake(0, 0, barWidth, barHeight)];
     v.backgroundColor = [UIColor colorWithRed:156/255. green:155/255. blue:166/255. alpha:1.];
-    v.autoresizingMask = UIViewAutoresizingFlexibleHeight;
+    v.autoresizingMask = UIViewAutoresizingFlexibleWidth; // UIViewAutoresizingFlexibleHeight;
     v.textView = t;
-    
+	[v setTranslatesAutoresizingMaskIntoConstraints:YES];
+
     UIView *border1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, barWidth, 1)];
     border1.backgroundColor = [UIColor colorWithRed:51/255. green:51/255. blue:51/255. alpha:1.];
     border1.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -107,16 +118,103 @@ static BOOL isPhone;
 	buttonWidth = (barWidth - 2 * leftMargin - (buttonCount - 1) * buttonSpacing) / buttonCount;
 	leftMargin = (barWidth - buttonWidth * buttonCount - buttonSpacing * (buttonCount - 1)) / 2;
 
-	
-    for (int i = 0; i < buttonCount; i++) {
-        KOSwipeButton *b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(leftMargin + i * (buttonSpacing + buttonWidth), topMargin + (barHeight - buttonHeight) / 2, buttonWidth, buttonHeight)];
-NSLog(@"BUTTON FRAME: %@", NSStringFromCGRect(b.frame));
+	NSLayoutConstraint *lc;
+	KOSwipeButton *b;
+	UIView *c = v;
+    for (int i = 0; i < 1; i++) { // buttonCount
+#if 1
+		NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
+		
+		UIView *lv = c;
+		c = [UIView new];
+[c setTranslatesAutoresizingMaskIntoConstraints:NO];
+		c.tag = i;
+		[v addSubview:c];
+c.backgroundColor = [UIColor redColor];
+
+#if 0
+        b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(0, 0, buttonWidth, buttonHeight)];
+		assert(!b.autoresizingMask);
+
+		[c addSubview:b];
+		
+		// SET UP IMAGE
+		
+		// setup inner first
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0];
+		[b addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth];
+		[b addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonHeight];
+		[b addConstraint:lc];
+		// Top and bottom
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
+		[c addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:-verticalMargin];
+		[c addConstraint:lc];
+		// left and right
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
+		[c addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
+		[c addConstraint:lc];
+		lv = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin];
+		[c addConstraint:lc];
+#endif
+
+		// PLACE VIEW IN SUPERVIEW
+
+
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeLeading multiplier:1 constant:0];
+		[v addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
+		[v addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:320]; // -2*leftMargin
+		[c addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:barHeight]; // -2*leftMargin
+		[c addConstraint:lc];
+
+
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTop multiplier:1 constant:0];
+		[v addConstraint:lc];
+		
+#if 0 // must be something about animating out of the keyboard - this DOES NOT DO ANYTHING!!!
+		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
+		[v addConstraint:lc];
+#endif
+
+//lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
+//[v addConstraint:lc];
+		
+//NSLog(@"BUTTON FRAME: %@", NSStringFromCGRect(b.frame));
         b.keys = [keys substringWithRange:NSMakeRange(i * 5, 5)];
         b.delegate = v;
+		
+		
+NSLog(@"B: %@", [b constraints]);
+NSLog(@"C: %@", [c constraints]);
+NSLog(@"V: %@", [v constraints]);
+#else
+        b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(leftMargin + i * (buttonSpacing + buttonWidth), topMargin + (barHeight - buttonHeight) / 2, buttonWidth, buttonHeight)];
         b.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
+//NSLog(@"BUTTON FRAME: %@", NSStringFromCGRect(b.frame));
+        b.keys = [keys substringWithRange:NSMakeRange(i * 5, 5)];
+        b.delegate = v;
         [v addSubview:b];
+#endif
     }
-    
+//	lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
+//	[v addConstraint:lc];
+
+dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^
+    {
+		NSLog(@"KEY VIEW FRAME: %@", NSStringFromCGRect(v.frame));
+		NSLog(@"C FRAME: %@", NSStringFromCGRect(c.frame));
+        NSLog(@"SUBVIEWS: %@", v.subviews);
+		NSLog(@"%@", [v constraints]);
+
+    } );
+	[v setNeedsUpdateConstraints];
+
     t.inputAccessoryView = v;
 	return v;
 }
