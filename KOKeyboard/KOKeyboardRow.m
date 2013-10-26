@@ -116,7 +116,7 @@ static BOOL isPhone;
 	NSLayoutConstraint *lc;
 	KOSwipeButton *b;
 	UIView *c = v;
-    for (int i = 0; i < 1; i++) { // buttonCount
+    for (int i = 0; i < 2; i++) { // buttonCount
 #if 1
 		NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
 		
@@ -125,7 +125,7 @@ static BOOL isPhone;
 [c setTranslatesAutoresizingMaskIntoConstraints:NO];
 		c.tag = i;
 		[v addSubview:c];
-c.backgroundColor = [UIColor redColor];
+c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 
 #if 0
         b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(0, 0, buttonWidth, buttonHeight)];
@@ -159,10 +159,14 @@ c.backgroundColor = [UIColor redColor];
 		// PLACE VIEW IN SUPERVIEW
 
 
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeLeading multiplier:1 constant:0];
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:lv attribute:i?NSLayoutAttributeTrailing:NSLayoutAttributeLeading multiplier:1 constant:0];
 		[v addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin]; // -2*leftMargin
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin]; // NSLayoutRelationEqual
 		[c addConstraint:lc];
+		if(i) {
+			lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:lv attribute:NSLayoutAttributeWidth multiplier:1 constant:0]; // NSLayoutRelationEqual
+			[v addConstraint:lc];
+		}
 #if 1 // must be something about animating out of the keyboard - this DOES NOT DO ANYTHING!!!
 		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
 		[v addConstraint:lc];
@@ -195,8 +199,8 @@ NSLog(@"V: %@", [v constraints]);
         [v addSubview:b];
 #endif
     }
-//	lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
-//	[v addConstraint:lc];
+	lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
+	[v addConstraint:lc];
 
 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^
     {
