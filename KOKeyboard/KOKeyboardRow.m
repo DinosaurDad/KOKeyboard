@@ -127,9 +127,12 @@ static BOOL isPhone;
 		[v addSubview:c];
 c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 
+#if 1
+
 #if 0
         b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(0, 0, buttonWidth, buttonHeight)];
 		assert(!b.autoresizingMask);
+		[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		[c addSubview:b];
 		
@@ -152,28 +155,74 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 		[c addConstraint:lc];
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
 		[c addConstraint:lc];
-		lv = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin];
+#else
+		b = [UIView new];
+		b.backgroundColor = [UIColor yellowColor];
+		[b setTranslatesAutoresizingMaskIntoConstraints:NO];
+		[c addSubview:b];
+
+
+#if 1
+		// setup inner first
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:10]; // FIX ME
+		[b addConstraint:lc];
+//lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth];
+//[b addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonHeight];
+		[b addConstraint:lc];
+		// Top and bottom
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
+		[c addConstraint:lc];
+
+// CRASHES?!?!?
+//lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:-verticalMargin];
+//[c addConstraint:lc];
+		// left and right
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
+		[c addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
+		[c addConstraint:lc];
+#else // CRASHES
+		// setup inner first
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0];
+		[b addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth];
+		[b addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonHeight];
+		[b addConstraint:lc];
+		// Top and bottom
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
+		[c addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:-verticalMargin];
+		[c addConstraint:lc];
+		// left and right
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
+		[c addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
+		[c addConstraint:lc];
+#endif
+
+#endif
+
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin]; // NSLayoutRelationEqual
+		[c addConstraint:lc];
+#else
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin];
 		[c addConstraint:lc];
 #endif
 
 		// PLACE VIEW IN SUPERVIEW
 
-
 		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:lv attribute:i?NSLayoutAttributeTrailing:NSLayoutAttributeLeading multiplier:1 constant:0];
 		[v addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin]; // NSLayoutRelationEqual
-		[c addConstraint:lc];
+#if 0
 		if(i) {
 			lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:lv attribute:NSLayoutAttributeWidth multiplier:1 constant:0]; // NSLayoutRelationEqual
 			[v addConstraint:lc];
 		}
-#if 1 // must be something about animating out of the keyboard - this DOES NOT DO ANYTHING!!!
+#endif
 		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
 		[v addConstraint:lc];
-#else
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:barHeight]; // -2*leftMargin
-		[c addConstraint:lc];
-#endif
 
 		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTop multiplier:1 constant:0];
 		[v addConstraint:lc];
@@ -183,8 +232,11 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 //[v addConstraint:lc];
 		
 //NSLog(@"BUTTON FRAME: %@", NSStringFromCGRect(b.frame));
-        b.keys = [keys substringWithRange:NSMakeRange(i * 5, 5)];
-        b.delegate = v;
+
+
+
+  //      b.keys = [keys substringWithRange:NSMakeRange(i * 5, 5)];
+  //      b.delegate = v;
 		
 		
 NSLog(@"B: %@", [b constraints]);
