@@ -52,11 +52,6 @@ static BOOL isPhone;
 	return YES;
 }
 
-//- (BOOL)translatesAutoresizingMaskIntoConstraints
-//{
-//	return NO;
-//}
-
 + (void)initialize
 {
 	isPhone = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone;
@@ -166,21 +161,19 @@ c.backgroundColor = [UIColor redColor];
 
 		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeLeading multiplier:1 constant:0];
 		[v addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
-		[v addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:320]; // -2*leftMargin
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin]; // -2*leftMargin
 		[c addConstraint:lc];
+#if 1 // must be something about animating out of the keyboard - this DOES NOT DO ANYTHING!!!
+		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
+		[v addConstraint:lc];
+#else
 		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:barHeight]; // -2*leftMargin
 		[c addConstraint:lc];
-
+#endif
 
 		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTop multiplier:1 constant:0];
 		[v addConstraint:lc];
 		
-#if 0 // must be something about animating out of the keyboard - this DOES NOT DO ANYTHING!!!
-		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
-		[v addConstraint:lc];
-#endif
 
 //lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
 //[v addConstraint:lc];
