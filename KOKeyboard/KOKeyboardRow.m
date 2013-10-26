@@ -116,7 +116,7 @@ static BOOL isPhone;
 	NSLayoutConstraint *lc;
 	KOSwipeButton *b;
 	UIView *c = v;
-    for (int i = 0; i < 2; i++) { // buttonCount
+    for (int i = 0; i < 7; i++) { // buttonCount
 #if 1
 		NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
 		
@@ -178,10 +178,17 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 //lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:-verticalMargin];
 //[c addConstraint:lc];
 		// left and right
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
+		lc.priority = 800;
 		[c addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
 		[c addConstraint:lc];
+		
+//lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeRight multiplier:1 constant:-leftMargin];
+//lc.priority = 800;
+//[c addConstraint:lc];
+
+
 #else // CRASHES
 		// setup inner first
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0];
@@ -204,8 +211,8 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 
 #endif
 
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin]; // NSLayoutRelationEqual
-		[c addConstraint:lc];
+		//lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin-1]; // NSLayoutRelationEqual
+		//[c addConstraint:lc];
 #else
 		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:buttonWidth+2*leftMargin];
 		[c addConstraint:lc];
@@ -309,6 +316,13 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
     UITextRange *r = [textView textRangeFromPosition:p1 toPosition:p2];
     
     textView.selectedTextRange = r;
+}
+
+- (void)layoutSubviews
+{
+	[super layoutSubviews];
+	
+	NSLog(@"LAYOUT SUBVIEWS %@", self.subviews);
 }
 
 @end
