@@ -89,7 +89,7 @@ static BOOL isPhone;
     [v addSubview:border2];
     
     int buttonHeight;
-    int leftMargin;
+    //int leftMargin;
     int topMargin;
     int buttonSpacing;
     int buttonCount;
@@ -98,7 +98,7 @@ static BOOL isPhone;
 
 	if(isPhone) {
 		buttonHeight = 50;
-		leftMargin = 3;
+		//leftMargin = 3;
 		topMargin = 0;
 		buttonSpacing = 6;
 		buttonCount = 7;
@@ -107,20 +107,20 @@ static BOOL isPhone;
 		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
 	} else {
 		buttonHeight = 60;
-		leftMargin = 3;
+		//leftMargin = 3;
 		topMargin = 1;
 		buttonSpacing = 6;
 		buttonCount = 11;
 
 		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
     }
-buttonWidth = (barWidth - 2 * leftMargin - (buttonCount - 1) * buttonSpacing) / buttonCount;
+	buttonWidth = (barWidth /* - 2 * leftMargin*/  - buttonCount * buttonSpacing) / buttonCount;
 //leftMargin = (barWidth - buttonWidth * buttonCount - buttonSpacing * (buttonCount - 1)) / 2;
-
+NSLog(@"ButtonWidth=%d", buttonWidth);
 	NSLayoutConstraint *lc;
 	KOSwipeButton *b;
 	UIView *c = v;
-    for (int i = 0; i < 5; i++) { // buttonCount
+    for (int i = 0; i < buttonCount; i++) { // buttonCount
 #if 1
 		NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
 		
@@ -179,7 +179,7 @@ c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 		[c addConstraint:lc];
 
 		// left and right
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:leftMargin];
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:buttonSpacing/2];
 		lc.priority = 800;
 		[c addConstraint:lc];
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
