@@ -90,17 +90,13 @@
 	
     UIImage *bgImg1 = [[UIImage imageNamed:@"key.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(9, 9, 9, 9)];
     UIImage *bgImg2 = [[UIImage imageNamed:@"key-pressed.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 9, 9)];
-//CGRect bounds = self.bounds;
-//bounds.size.height -=10;
-bgView = [[UIImageView alloc] initWithFrame:self.bounds];
-//bgView.contentMode = UIViewContentModeScaleAspectFit; // UIViewContentModeScaleToFill;
-//bgView.clipsToBounds = YES;
+	bgView = [[UIImageView alloc] initWithFrame:self.bounds];
 
     [bgView setImage:bgImg1];
     [bgView setHighlightedImage:bgImg2];
     bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self addSubview:bgView];
-NSLog(@"IMAGE FRAME: %@", NSStringFromCGRect(bgView.frame));
+	// NSLog(@"IMAGE FRAME: %@", NSStringFromCGRect(bgView.frame));
     
     int labelWidth = 20;
     int labelHeight = 20;
@@ -136,7 +132,7 @@ NSLog(@"IMAGE FRAME: %@", NSStringFromCGRect(bgView.frame));
     l.textAlignment = NSTextAlignmentCenter;
     l.text = @"3";
     l.font = f;
-    l.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    l.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin; // UIViewAutoresizingFlexibleWidth;
     [self addSubview:l];
     [l setHighlightedTextColor:[UIColor blueColor]];
     l.backgroundColor = [UIColor clearColor];

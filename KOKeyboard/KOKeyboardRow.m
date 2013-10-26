@@ -36,8 +36,8 @@
 #import "KOSwipeButton.h"
 
 @interface KOKeyboardRow ()
-
-@property (nonatomic, retain) UITextView *textView;
+@property (nonatomic, retain) id <UITextInput> textInput;
+//@property (nonatomic, retain) UITextView *textView;
 @property (nonatomic, assign) CGRect startLocation;
 
 @end
@@ -52,7 +52,7 @@ static BOOL isPhone;
 	NSMutableIndexSet *lSet;
 }
 
-@synthesize textView, startLocation;
+@synthesize textInput, startLocation;
 
 + (BOOL)requiresConstraintBasedLayout
 {
@@ -100,11 +100,11 @@ static BOOL isPhone;
 	if(isPhone) {
 		buttonHeight = 50;
 		topMargin = 0;
-		buttonSpacing = 6;
+		buttonSpacing = 2;
 		buttonCount = 8;
 		buttonWidth = 100;
 		keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
-		keys = @"1234512345◉◉◉◉◉12345◉◉◉◉◉123451234512345";
+		keys = @"12345abcde◉◉◉◉◉fghij◉◉◉◉◉123451234512345";
 		//keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
 		// K K O K 0 K K K
 		[v->pSet addIndex:0];
@@ -303,7 +303,8 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
 {
     CGRect loc = startLocation;    
     
-    loc.origin.y -= textView.contentOffset.y;
+	// Not needed! DFH
+    //loc.origin.y += textView.contentOffset.y;
     
     UITextPosition *p1 = [textView closestPositionToPoint:loc.origin];
     
@@ -316,7 +317,7 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
         p1 = p2;
     }
     UITextRange *r = [textView textRangeFromPosition:p1 toPosition:p2];
-    
+	
     textView.selectedTextRange = r;
 }
 
