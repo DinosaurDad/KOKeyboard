@@ -1,6 +1,19 @@
 KOKeyboard – iOS keyboard extension
 ===================================
 
+NOTES BY DAVID HOERL ON HIS FORK
+===================================
+Oct 26, 2013
+
+- added support for iPhone
+- added the ability to define different buttons for portrait and landscape. For instance, I want 5 button os the phone in portrait, and 7 in landscape.
+- added keyclicks
+- rolled in all the open issues from the original repository
+- fixed a bug on the cursor control if the TextView had scrolled
+- added the abilty to just get an object and set a delegate on it. Needed if you want to create one object and share it
+
+Original
+===================================
 **KOKeyboard** is an iOS drop-in component that adds a new row of keys to the default on-screen keyboard. It consists of swipe buttons with all common symbols, punctuation and brackets, and a special **navigation key**. It was developed for [Kodiak PHP](http://www.becomekodiak.com/), an app which allows you to write and run PHP code directly on the iPad.
 
 <img src="http://i.imgur.com/N7nQY.png">

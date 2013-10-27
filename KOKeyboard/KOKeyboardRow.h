@@ -33,10 +33,9 @@
 //
 
 @interface KOKeyboardRow : UIView
+@property (nonatomic, weak) id <UITextInput> delegate;
 
-+ (KOKeyboardRow *)applyToTextView:(UITextView *)textView;
-- (void)trackPointMovedX:(int)xdiff Y:(int)ydiff selecting:(BOOL)selecting;
-- (void)trackPointStarted;
++ (KOKeyboardRow *)applyToTextControl:(id <UITextInput>) delegate;
 
 - (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation;
 

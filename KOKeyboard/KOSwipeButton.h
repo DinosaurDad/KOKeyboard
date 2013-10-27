@@ -32,8 +32,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+@protocol KOProtocol;
+
 @interface KOSwipeButton : UIView
-@property (nonatomic, weak) id delegate;
+@property (nonatomic, weak) id <KOProtocol> delegate;
 
 - (void)setKeys:(NSString *)newKeys;
 

@@ -34,12 +34,9 @@
 
 #import "KOKeyboardRow.h"
 #import "KOSwipeButton.h"
+#import "KOProtocol.h"
 
-@interface KOKeyboardRow ()
-@property (nonatomic, retain) id <UITextInput> textInput;
-//@property (nonatomic, retain) UITextView *textView;
-@property (nonatomic, assign) CGRect startLocation;
-
+@interface KOKeyboardRow () <KOProtocol, UIInputViewAudioFeedback>
 @end
 
 static BOOL isPhone;
@@ -50,9 +47,9 @@ static BOOL isPhone;
 	NSMutableArray *lConstraints;
 	NSMutableIndexSet *pSet;
 	NSMutableIndexSet *lSet;
+	
+	CGRect startLocation;
 }
-
-@synthesize textInput, startLocation;
 
 + (BOOL)requiresConstraintBasedLayout
 {
@@ -64,7 +61,23 @@ static BOOL isPhone;
 	isPhone = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone;
 }
 
-+ (KOKeyboardRow *)applyToTextView:(UITextView *)t
++ (KOKeyboardRow *)applyToTextControl:(id <UITextInput>) delegate
+{
+	KOKeyboardRow *kov = [KOKeyboardRow new];
+	kov.delegate = delegate;
+	
+	return kov;
+}
+
+- (instancetype)init
+{
+	if((self = [super init])) {
+		[self setup];
+	}
+	return self;
+}
+
+- (void)setup
 {
 	int barHeight;
 	int barWidth;
@@ -76,22 +89,19 @@ static BOOL isPhone;
 		barHeight = 72;
 		barWidth = 768;
 	}
-    
-    KOKeyboardRow *v = [[KOKeyboardRow alloc] initWithFrame:CGRectMake(0, 0, barWidth, barHeight)];
+    self.frame = CGRectMake(0, 0, barWidth, barHeight);
+
+	pConstraints	= [NSMutableArray array];
+	lConstraints	= [NSMutableArray array];
+	pSet			= [NSMutableIndexSet new];
+	lSet			= [NSMutableIndexSet new];
 	
-	v->pConstraints	= [NSMutableArray array];
-	v->lConstraints	= [NSMutableArray array];
-	v->pSet			= [NSMutableIndexSet new];
-	v->lSet			= [NSMutableIndexSet new];
-	
-    v.backgroundColor = [UIColor colorWithRed:156/255. green:155/255. blue:166/255. alpha:1.];
-    v.autoresizingMask = UIViewAutoresizingFlexibleWidth; // UIViewAutoresizingFlexibleHeight;
-    v.textView = t;
-	[v setTranslatesAutoresizingMaskIntoConstraints:YES];
+    self.backgroundColor = [UIColor colorWithRed:156/255. green:155/255. blue:166/255. alpha:1.];
+    self.autoresizingMask = UIViewAutoresizingFlexibleWidth; // UIViewAutoresizingFlexibleHeight;
+	[self setTranslatesAutoresizingMaskIntoConstraints:YES];
     
     int buttonHeight;
-    //int leftMargin;
-    int topMargin;
+    int horzMargin;
     int buttonSpacing;
     int buttonCount;
 	NSString *keys;
@@ -99,51 +109,52 @@ static BOOL isPhone;
 
 	if(isPhone) {
 		buttonHeight = 50;
-		topMargin = 0;
+		horzMargin = 6;
 		buttonSpacing = 2;
 		buttonCount = 8;
-		buttonWidth = 100;
-		keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
-		keys = @"12345abcde◉◉◉◉◉fghij◉◉◉◉◉123451234512345";
+//keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
+//keys = @"12345abcde◉◉◉◉◉fghij◉◉◉◉◉123451234512345";
+keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
+
 		//keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
 		// K K O K 0 K K K
-		[v->pSet addIndex:0];
-		[v->pSet addIndex:1];
-		[v->pSet addIndex:2];
-		[v->pSet addIndex:3];
-		[v->pSet addIndex:5];
+		[pSet addIndex:0];
+		[pSet addIndex:1];
+		[pSet addIndex:2];
+		[pSet addIndex:3];
+		[pSet addIndex:5];
 		
-		[v->lSet addIndex:0];
-		[v->lSet addIndex:1];
-		[v->lSet addIndex:3];
-		[v->lSet addIndex:4];
-		[v->lSet addIndex:5];
-		[v->lSet addIndex:6];
-		[v->lSet addIndex:7];
+		[lSet addIndex:0];
+		[lSet addIndex:1];
+		[lSet addIndex:3];
+		[lSet addIndex:4];
+		[lSet addIndex:5];
+		[lSet addIndex:6];
+		[lSet addIndex:7];
 
 	} else {
 		buttonHeight = 60;
-		//leftMargin = 3;
-		topMargin = 1;
+		horzMargin = 4;
 		buttonSpacing = 6;
 		buttonCount = 11;
 
 		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
     }
-	buttonWidth = (barWidth - buttonCount * buttonSpacing) / buttonCount;
+	buttonWidth = (barWidth - buttonCount * buttonSpacing - 2*horzMargin) / buttonCount;
 	NSLayoutConstraint *lc;
 
 	KOSwipeButton *b;
-	UIView *c = v;
+	UIView *c = self;
+	NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
+	
     for (int i = 0; i < buttonCount; i++) { // buttonCount
-		NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
 		
 		UIView *lv = c;
 		c = [UIView new];
 		[c setTranslatesAutoresizingMaskIntoConstraints:NO];
 		c.clipsToBounds = YES;
 		c.tag = i;
-		[v addSubview:c];
+		[self addSubview:c];
 		// c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 
         b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(0, 0, buttonWidth, buttonHeight)];
@@ -154,7 +165,7 @@ static BOOL isPhone;
 		
 		// SET UP IMAGE
 
-		// setup inner first
+		// setup button view first
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0]; // FIX ME
 		[b addConstraint:lc];
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonHeight];
@@ -163,8 +174,8 @@ static BOOL isPhone;
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
 		[c addConstraint:lc];
 
-		// left and right
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeft multiplier:1 constant:buttonSpacing/2];
+		// left
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeading multiplier:1 constant:buttonSpacing/2];
 		lc.priority = 800;
 		[c addConstraint:lc];
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
@@ -172,42 +183,43 @@ static BOOL isPhone;
 
 		// PLACE VIEW IN SUPERVIEW
 
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:lv attribute:i?NSLayoutAttributeTrailing:NSLayoutAttributeLeading multiplier:1 constant:0];
-		[v addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
-		[v addConstraint:lc];
+		NSUInteger margin = i ? 0 : horzMargin;
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:lv attribute:i?NSLayoutAttributeTrailing:NSLayoutAttributeLeading multiplier:1 constant:margin];
+		[self addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
+		[self addConstraint:lc];
 
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTop multiplier:1 constant:0];
-		[v addConstraint:lc];
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTop multiplier:1 constant:0];
+		[self addConstraint:lc];
 		
 
         b.keys = [keys substringWithRange:NSMakeRange(i * 5, 5)];
-		b.delegate = v;
+		b.delegate = self;
 		
 #if 0
 		NSLog(@"B: %@", [b constraints]);
 		NSLog(@"C: %@", [c constraints]);
-		NSLog(@"V: %@", [v constraints]);
+		NSLog(@"V: %@", [self constraints]);
 #endif
     }
-	lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:v attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
-	[v addConstraint:lc];
+	lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTrailing multiplier:1 constant:-horzMargin];
+	[self addConstraint:lc];
 
 
 #if 0
 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^
     {
-		NSLog(@"KEY VIEW FRAME: %@", NSStringFromCGRect(v.frame));
+		NSLog(@"KEY VIEW FRAME: %@", NSStringFromCGRect(self.frame));
 		NSLog(@"C FRAME: %@", NSStringFromCGRect(c.frame));
-        NSLog(@"SUBVIEWS: %@", v.subviews);
-		NSLog(@"%@", [v constraints]);
+        NSLog(@"SUBVIEWS: %@", self.subviews);
+		NSLog(@"%@", [self constraints]);
 
     } );
-	[v setNeedsUpdateConstraints];
+	[self setNeedsUpdateConstraints];
 #endif
 
 	__block UIView *firstView;
-	[v.subviews enumerateObjectsUsingBlock:^(UIView *enclosingView, NSUInteger idx, BOOL *stop)
+	[self.subviews enumerateObjectsUsingBlock:^(UIView *enclosingView, NSUInteger idx, BOOL *stop)
 		{
 			//NSLog(@"BUTTON: %@ subviews: %@", enclosingView, enclosingView.subviews);
 		
@@ -219,44 +231,53 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
 			} else {
 				NSLayoutConstraint *le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
 				NSLayoutConstraint *l0 = [NSLayoutConstraint constraintWithItem:enclosingView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:0];
-				//[v addConstraint:lc];
-				if([v->pSet containsIndex:idx]) {
-					[v->pConstraints addObject:le];
+				//[self addConstraint:lc];
+				if([pSet containsIndex:idx]) {
+					[pConstraints addObject:le];
 				} else {
-					[v->pConstraints addObject:l0];
+					[pConstraints addObject:l0];
 				
 				}
-				if([v->lSet containsIndex:idx]) {
-					[v->lConstraints addObject:le];
+				if([lSet containsIndex:idx]) {
+					[lConstraints addObject:le];
 				} else {
-					[v->lConstraints addObject:l0];
+					[lConstraints addObject:l0];
 				}
 			}
 		} ];
 	
 	UIInterfaceOrientation interfaceOrientation = [[UIApplication sharedApplication] statusBarOrientation];
 	if(UIInterfaceOrientationIsPortrait(interfaceOrientation) == UIInterfaceOrientationPortrait) {
-		[v addConstraints:v->pConstraints];
+		[self addConstraints:pConstraints];
 	} else {
-		[v addConstraints:v->lConstraints];
+		[self addConstraints:lConstraints];
 	}
 
     UIView *border1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, barWidth, 1)];
 	border1.tag = 100;
     border1.backgroundColor = [UIColor colorWithRed:51/255. green:51/255. blue:51/255. alpha:1.];
     border1.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [v addSubview:border1];
+    [self addSubview:border1];
     
     UIView *border2 = [[UIView alloc] initWithFrame:CGRectMake(0, 1, barWidth, 1)];
     border2.backgroundColor = [UIColor colorWithRed:191/255. green:191/255. blue:191/255. alpha:1.];
     border2.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 	border2.tag = 101;
-    [v addSubview:border2];
-
-    t.inputAccessoryView = v;
-	return v;
+    [self addSubview:border2];
 }
 
+- (void)setDelegate:(id<UITextInput>)delegate
+{
+	_delegate = delegate;
+	if([delegate isKindOfClass:[UITextView class]]) {
+		((UITextView *)delegate).inputAccessoryView = self;
+	} else
+	if([delegate isKindOfClass:[UITextField class]]) {
+		((UITextField *)delegate).inputAccessoryView = self;
+	}
+	//self._delegate = t;
+}
+	
 - (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
 	if(UIInterfaceOrientationIsPortrait(interfaceOrientation)) {
@@ -269,65 +290,78 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
 	[self needsUpdateConstraints];
 }
 
-#if 0
-
-	v->pConstraints	= [NSMutableArray array];
-	v->lConstraints	= [NSMutableArray array];
-	v->pSet			= [NSMutableIndexSet new];
-	v->lSet			= [NSMutableIndexSet new];
-#endif
+- (BOOL) enableInputClicksWhenVisible {
+    return YES;
+}
 
 - (void)insertText:(NSString *)text
 {
-	if ([textView.delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementText:)]) {
-		// Ask textView'delegate whether we should change the text
-		NSRange selectedRange = textView.selectedRange;
-		BOOL shouldInsert = [textView.delegate textView:textView shouldChangeTextInRange:selectedRange replacementText:text];
-		if (shouldInsert) {
-			[textView insertText:text];
-			// also notify someone interested in this textview
-			[[NSNotificationCenter defaultCenter] postNotificationName:UITextViewTextDidChangeNotification object:textView];
-		}
-	} else {
-        [textView insertText:text];
-    }
+	[[UIDevice currentDevice] playInputClick];
 
+	if([_delegate isKindOfClass:[UITextView class]]) {
+		UITextView *textView = (UITextView *)_delegate;
+		if ([textView.delegate respondsToSelector:@selector(textView:shouldChangeTextInRange:replacementText:)]) {
+			// Ask textView'delegate whether we should change the text
+			NSRange selectedRange = textView.selectedRange;
+			BOOL shouldInsert = [textView.delegate textView:textView shouldChangeTextInRange:selectedRange replacementText:text];
+			if (shouldInsert) {
+				[textView insertText:text];
+				// also notify someone interested in this textview
+				[[NSNotificationCenter defaultCenter] postNotificationName:UITextViewTextDidChangeNotification object:textView];
+			}
+		} else {
+			[_delegate insertText:text];
+		}
+	} else
+	if([_delegate isKindOfClass:[UITextField class]]) {
+		UITextField *textField = (UITextField *)_delegate;
+		if ([textField.delegate respondsToSelector:@selector(textField:shouldChangeTextInRange:replacementText:)]) {
+			// Ask textView'delegate whether we should change the text
+			UITextRange *selectedTextRange = textField.selectedTextRange;
+			NSUInteger location = [textField offsetFromPosition:textField.beginningOfDocument
+													 toPosition:selectedTextRange.start];
+			NSUInteger length = [textField offsetFromPosition:selectedTextRange.start
+												   toPosition:selectedTextRange.end];
+			NSRange selectedRange = NSMakeRange(location, length);
+			//NSLog(@"selectedRange: %@", NSStringFromRange(selectedRange));
+
+			BOOL shouldInsert = [textField.delegate textField:textField shouldChangeCharactersInRange:selectedRange replacementString:text];
+			if (shouldInsert) {
+				[textField insertText:text];
+				// also notify someone interested in this textview
+				[[NSNotificationCenter defaultCenter] postNotificationName:UITextFieldTextDidChangeNotification object:textField];
+			}
+		} else {
+			[_delegate insertText:text];
+		}
+	}
 }
 
 - (void)trackPointStarted
 {
-    startLocation = [textView caretRectForPosition:textView.selectedTextRange.start];
+    startLocation = [_delegate caretRectForPosition:_delegate.selectedTextRange.start];
 }
 
 - (void)trackPointMovedX:(int)xdiff Y:(int)ydiff selecting:(BOOL)selecting
 {
     CGRect loc = startLocation;    
     
-	// Not needed! DFH
+	// Following line causes problems DFH
     //loc.origin.y += textView.contentOffset.y;
     
-    UITextPosition *p1 = [textView closestPositionToPoint:loc.origin];
+    UITextPosition *p1 = [_delegate closestPositionToPoint:loc.origin];
     
     loc.origin.x -= xdiff;
     loc.origin.y -= ydiff;
     
-    UITextPosition *p2 = [textView closestPositionToPoint:loc.origin];
+    UITextPosition *p2 = [_delegate closestPositionToPoint:loc.origin];
     
     if (!selecting) {
         p1 = p2;
     }
-    UITextRange *r = [textView textRangeFromPosition:p1 toPosition:p2];
+    UITextRange *r = [_delegate textRangeFromPosition:p1 toPosition:p2];
 	
-    textView.selectedTextRange = r;
+    _delegate.selectedTextRange = r;
 }
-
-#if 0
-- (void)layoutSubviews
-{
-	[super layoutSubviews];
-	
-	NSLog(@"LAYOUT SUBVIEWS %@", self.subviews);
-}
-#endif
 
 @end

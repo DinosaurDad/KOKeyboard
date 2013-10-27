@@ -29,6 +29,8 @@
 		665C986015CC2EC5001B6908 /* KOKeyboardRow.m in Sources */ = {isa = PBXBuildFile; fileRef = 665C985115CC2EC5001B6908 /* KOKeyboardRow.m */; };
 		665C986115CC2EC5001B6908 /* KOSwipeButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 665C985315CC2EC5001B6908 /* KOSwipeButton.m */; };
 		DE98036A181C15AB00ABE541 /* Regular Expression Keys in Resources */ = {isa = PBXBuildFile; fileRef = DE980369181C15AB00ABE541 /* Regular Expression Keys */; };
+		DE98036F181C864900ABE541 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = DE98036D181C864900ABE541 /* LICENSE */; };
+		DE980370181C864900ABE541 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = DE98036E181C864900ABE541 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +63,9 @@
 		665C985215CC2EC5001B6908 /* KOSwipeButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KOSwipeButton.h; sourceTree = "<group>"; };
 		665C985315CC2EC5001B6908 /* KOSwipeButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KOSwipeButton.m; sourceTree = "<group>"; };
 		DE980369181C15AB00ABE541 /* Regular Expression Keys */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Regular Expression Keys"; sourceTree = "<group>"; };
+		DE98036D181C864900ABE541 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		DE98036E181C864900ABE541 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		DE980371181CA9AA00ABE541 /* KOProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KOProtocol.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +85,8 @@
 		665C981815CC2C91001B6908 = {
 			isa = PBXGroup;
 			children = (
+				DE98036D181C864900ABE541 /* LICENSE */,
+				DE98036E181C864900ABE541 /* README.md */,
 				665C982D15CC2C91001B6908 /* KOKeyboard */,
 				665C982615CC2C91001B6908 /* Frameworks */,
 				665C982415CC2C91001B6908 /* Products */,
@@ -152,6 +159,7 @@
 		66B86ACE15DD034100DB7BAF /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				DE980371181CA9AA00ABE541 /* KOProtocol.h */,
 				665C985015CC2EC5001B6908 /* KOKeyboardRow.h */,
 				665C985115CC2EC5001B6908 /* KOKeyboardRow.m */,
 				665C985215CC2EC5001B6908 /* KOSwipeButton.h */,
@@ -218,9 +226,11 @@
 				DE98036A181C15AB00ABE541 /* Regular Expression Keys in Resources */,
 				665C985615CC2EC5001B6908 /* hal-blue.png in Resources */,
 				665C985715CC2EC5001B6908 /* hal-blue@2x.png in Resources */,
+				DE980370181C864900ABE541 /* README.md in Resources */,
 				665C985815CC2EC5001B6908 /* hal-white.png in Resources */,
 				665C985915CC2EC5001B6908 /* hal-white@2x.png in Resources */,
 				665C985A15CC2EC5001B6908 /* key-blue.png in Resources */,
+				DE98036F181C864900ABE541 /* LICENSE in Resources */,
 				665C985B15CC2EC5001B6908 /* key-blue@2x.png in Resources */,
 				665C985C15CC2EC5001B6908 /* key-pressed.png in Resources */,
 				665C985D15CC2EC5001B6908 /* key-pressed@2x.png in Resources */,

@@ -34,6 +34,7 @@
 
 #import "KOSwipeButton.h"
 #import "KOKeyboardRow.h"
+#import "KOProtocol.h"
 
 @interface KOSwipeButton ()
 
