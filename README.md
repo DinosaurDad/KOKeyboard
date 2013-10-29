@@ -6,8 +6,9 @@ NOTES BY DAVID HOERL ON HIS FORK
 Oct 26, 2013
 
 - added support for iPhone
-- added the ability to define different buttons for portrait and landscape. For instance, I want 5 button os the phone in portrait, and 7 in landscape.
-- added keyclicks
+- added support for UITextField (so it now supports both UITextField and UITextView)
+- added the ability to define different buttons for portrait and landscape. For instance, 5 buttons for a iPhone in portrait, and 7 in landscape.
+- added keyclicks using the standard approved API
 - rolled in all the open issues from the original repository
 - fixed a bug on the cursor control if the TextView had scrolled
 - added the abilty to just get an object and set a delegate on it. Needed if you want to create one object and share it

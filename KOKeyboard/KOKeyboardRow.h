@@ -34,6 +34,8 @@
 
 @interface KOKeyboardRow : UIView
 @property (nonatomic, weak) id <UITextInput> delegate;
+@property (nonatomic, strong) NSString *keys;
+@property (nonatomic, assign) BOOL useAnimation;
 
 + (KOKeyboardRow *)applyToTextControl:(id <UITextInput>) delegate;
 

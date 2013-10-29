@@ -36,20 +36,38 @@
 #import "KOSwipeButton.h"
 #import "KOProtocol.h"
 
-@interface KOKeyboardRow () <KOProtocol, UIInputViewAudioFeedback>
+@interface KOKeyboardRow () <KOProtocol, UIInputViewAudioFeedback, UIDynamicAnimatorDelegate>
 @end
 
 static BOOL isPhone;
 
 @implementation KOKeyboardRow
 {
-	NSMutableArray *pConstraints;
-	NSMutableArray *lConstraints;
-	NSMutableIndexSet *pSet;
-	NSMutableIndexSet *lSet;
+	NSMutableArray			*constraints;
+	NSMutableIndexSet		*pSet;
+	NSMutableIndexSet		*lSet;
 	
-	CGRect startLocation;
+	CGRect					startLocation;			// cursor control
+	
+	KOSwipeButton			*originalSnapButton;
+	KOSwipeButton			*snapButton;
+	CGRect					snapbackPosition;		// button animation
+	CGFloat					minX, maxX, minY, maxY;	// defines where the button can move
+	CGPoint					originalTouchPt;		// finger hit this spot originally
+	CGPoint					originalViewPt;			// view frame origin
+	
+	UIDynamicAnimator		*animator;
+	UIAttachmentBehavior	*aBehavior;
+	
+	NSInteger				barHeight;
+	NSInteger				barWidth;
+    NSInteger				buttonHeight;
+    NSInteger				horzMargin;
+    NSInteger				buttonSpacing;
+    NSInteger				buttonCount;
+	NSInteger				buttonWidth;
 }
+
 
 + (BOOL)requiresConstraintBasedLayout
 {
@@ -79,52 +97,39 @@ static BOOL isPhone;
 
 - (void)setup
 {
-	int barHeight;
-	int barWidth;
-
-	if(isPhone) {
-		barHeight = 52;
-		barWidth = 320;
-	} else {
-		barHeight = 72;
-		barWidth = 768;
-	}
-    self.frame = CGRectMake(0, 0, barWidth, barHeight);
-
-	pConstraints	= [NSMutableArray array];
-	lConstraints	= [NSMutableArray array];
-	pSet			= [NSMutableIndexSet new];
-	lSet			= [NSMutableIndexSet new];
+_useAnimation = YES;
+	animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
+	animator.delegate = self;
+	
+	constraints			= [NSMutableArray array];
+	pSet				= [NSMutableIndexSet new];
+	lSet				= [NSMutableIndexSet new];
 	
     self.backgroundColor = [UIColor colorWithRed:156/255. green:155/255. blue:166/255. alpha:1.];
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth; // UIViewAutoresizingFlexibleHeight;
 	[self setTranslatesAutoresizingMaskIntoConstraints:YES];
     
-    int buttonHeight;
-    int horzMargin;
-    int buttonSpacing;
-    int buttonCount;
-	NSString *keys;
-	int buttonWidth;
-
 	if(isPhone) {
+		barHeight = 56;
+		barWidth = 320;
+
 		buttonHeight = 50;
 		horzMargin = 6;
 		buttonSpacing = 2;
 		buttonCount = 8;
 //keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
 //keys = @"12345abcde◉◉◉◉◉fghij◉◉◉◉◉123451234512345";
-keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
+_keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 
 		//keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
 		// K K O K 0 K K K
-		[pSet addIndex:0];
+		//[pSet addIndex:0];	// special
 		[pSet addIndex:1];
 		[pSet addIndex:2];
 		[pSet addIndex:3];
 		[pSet addIndex:5];
 		
-		[lSet addIndex:0];
+		//[lSet addIndex:0];	// special
 		[lSet addIndex:1];
 		[lSet addIndex:3];
 		[lSet addIndex:4];
@@ -133,13 +138,18 @@ keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 		[lSet addIndex:7];
 
 	} else {
+		barHeight = 72;
+		barWidth = 768;
+
 		buttonHeight = 60;
 		horzMargin = 4;
 		buttonSpacing = 6;
 		buttonCount = 11;
 
-		keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
+		_keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
     }
+    self.bounds = CGRectMake(0, 0, barWidth, barHeight);
+
 	buttonWidth = (barWidth - buttonCount * buttonSpacing - 2*horzMargin) / buttonCount;
 	NSLayoutConstraint *lc;
 
@@ -147,18 +157,17 @@ keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 	UIView *c = self;
 	NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
 	
-    for (int i = 0; i < buttonCount; i++) { // buttonCount
-		
+    for (int i = 0; i < buttonCount; i++) {
 		UIView *lv = c;
 		c = [UIView new];
 		[c setTranslatesAutoresizingMaskIntoConstraints:NO];
-		c.clipsToBounds = YES;
+		c.clipsToBounds = NO;
 		c.tag = i;
 		[self addSubview:c];
 		// c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
 
         b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(0, 0, buttonWidth, buttonHeight)];
-		assert(!b.autoresizingMask);
+		b.tag = i;
 		[b setTranslatesAutoresizingMaskIntoConstraints:NO];
 
 		[c addSubview:b];
@@ -173,7 +182,7 @@ keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 		// Top and bottom
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
 		[c addConstraint:lc];
-
+	
 		// left
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeading multiplier:1 constant:buttonSpacing/2];
 		lc.priority = 800;
@@ -193,7 +202,7 @@ keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 		[self addConstraint:lc];
 		
 
-        b.keys = [keys substringWithRange:NSMakeRange(i * 5, 5)];
+        b.keys = [_keys substringWithRange:NSMakeRange(i * 5, 5)];
 		b.delegate = self;
 		
 #if 0
@@ -207,63 +216,52 @@ keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 
 
 #if 0
-dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^
-    {
-		NSLog(@"KEY VIEW FRAME: %@", NSStringFromCGRect(self.frame));
-		NSLog(@"C FRAME: %@", NSStringFromCGRect(c.frame));
-        NSLog(@"SUBVIEWS: %@", self.subviews);
-		NSLog(@"%@", [self constraints]);
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^
+		{
+			NSLog(@"KEY VIEW FRAME: %@", NSStringFromCGRect(self.frame));
+			NSLog(@"C FRAME: %@", NSStringFromCGRect(c.frame));
+			NSLog(@"SUBVIEWS: %@", self.subviews);
+			NSLog(@"%@", [self constraints]);
 
-    } );
-	[self setNeedsUpdateConstraints];
+		} );
 #endif
 
 	__block UIView *firstView;
 	[self.subviews enumerateObjectsUsingBlock:^(UIView *enclosingView, NSUInteger idx, BOOL *stop)
 		{
 			//NSLog(@"BUTTON: %@ subviews: %@", enclosingView, enclosingView.subviews);
-		
 			UIView *button = [enclosingView.subviews lastObject];
 			assert(button);
-
 			if(!idx) {
 				firstView = button;
+				[constraints addObject:[NSNull null]];	// placeholder so indexing works properly
 			} else {
 				NSLayoutConstraint *le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
-				NSLayoutConstraint *l0 = [NSLayoutConstraint constraintWithItem:enclosingView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:0];
-				//[self addConstraint:lc];
-				if([pSet containsIndex:idx]) {
-					[pConstraints addObject:le];
-				} else {
-					[pConstraints addObject:l0];
+				le.priority = UILayoutPriorityRequired - 1;
+				NSLayoutConstraint *l0 = [NSLayoutConstraint constraintWithItem:enclosingView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:nil attribute:0 multiplier:1 constant:10000];
 				
-				}
-				if([lSet containsIndex:idx]) {
-					[lConstraints addObject:le];
-				} else {
-					[lConstraints addObject:l0];
-				}
+				[self addConstraint:le];
+				[self addConstraint:l0];
+				[constraints addObject:l0];
 			}
 		} ];
 	
 	UIInterfaceOrientation interfaceOrientation = [[UIApplication sharedApplication] statusBarOrientation];
-	if(UIInterfaceOrientationIsPortrait(interfaceOrientation) == UIInterfaceOrientationPortrait) {
-		[self addConstraints:pConstraints];
-	} else {
-		[self addConstraints:lConstraints];
-	}
+	[self switchToOrientation:interfaceOrientation];
 
     UIView *border1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, barWidth, 1)];
 	border1.tag = 100;
     border1.backgroundColor = [UIColor colorWithRed:51/255. green:51/255. blue:51/255. alpha:1.];
     border1.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [self addSubview:border1];
-    
+    [self insertSubview:border1 atIndex:0];
+
+#if 0
     UIView *border2 = [[UIView alloc] initWithFrame:CGRectMake(0, 1, barWidth, 1)];
     border2.backgroundColor = [UIColor colorWithRed:191/255. green:191/255. blue:191/255. alpha:1.];
     border2.autoresizingMask = UIViewAutoresizingFlexibleWidth;
 	border2.tag = 101;
     [self addSubview:border2];
+#endif
 }
 
 - (void)setDelegate:(id<UITextInput>)delegate
@@ -277,16 +275,25 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
 	}
 	//self._delegate = t;
 }
-	
+
 - (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-	if(UIInterfaceOrientationIsPortrait(interfaceOrientation)) {
-		[self removeConstraints:lConstraints];
-		[self addConstraints:pConstraints];
-	} else {
-		[self removeConstraints:pConstraints];
-		[self addConstraints:lConstraints];
-	}
+	BOOL isPortrait = UIInterfaceOrientationIsPortrait(interfaceOrientation);
+	NSIndexSet *set = isPortrait ? pSet : lSet;
+
+	[constraints enumerateObjectsUsingBlock:^(NSLayoutConstraint *lc, NSUInteger idx, BOOL *stop)
+		{
+			if(!idx) return;	// index 0 is special
+			UIView *c = lc.firstItem;
+
+			if([set containsIndex:idx]) {
+				lc.constant = 10000;
+				c.clipsToBounds = NO;
+			} else {
+				lc.constant = 0;
+				c.clipsToBounds = YES;
+			}
+		} ];
 	[self needsUpdateConstraints];
 }
 
@@ -363,5 +370,194 @@ dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_
 	
     _delegate.selectedTextRange = r;
 }
+
+- (void)finderDown:(UITouch *)t inView:(UIView *)view
+{
+	if(!_useAnimation) {
+		return;
+	}
+
+	UIView *box = [view superview];
+	originalTouchPt = [t locationInView:self];
+	originalViewPt	= [box convertPoint:view.center toView:self];
+NSLog(@"CENTER IN MY COORDINATES %@", NSStringFromCGPoint(originalViewPt));
+	snapbackPosition = [view convertRect:view.bounds toView:self];
+//NSLog(@"VIEW frame: %@", NSStringFromCGRect(snapbackPosition));
+	
+	{
+		CGRect frame = box.frame;
+//NSLog(@"BOX frame: %@", NSStringFromCGRect(snapbackPosition));
+		minX = box.tag ? (frame.origin.x - 2*buttonSpacing) : 0;
+		maxX = frame.origin.x + frame.size.width + buttonSpacing + buttonSpacing - view.bounds.size.width;
+		minY = 0;
+		maxY = barHeight - view.bounds.size.height;
+	}
+
+#if 0
+	snapShot = [view snapshotViewAfterScreenUpdates:NO];
+#endif
+
+	originalSnapButton = (KOSwipeButton *)view;
+	view.alpha = 0;
+	snapButton = [[KOSwipeButton alloc] initWithFrame:[view convertRect:view.bounds toView:self]];
+	snapButton.keys = originalSnapButton.keys;
+	
+//NSLog(@"SnapShot frame: %@", NSStringFromCGRect(snapButton.frame));
+	[self addSubview:snapButton];
+
+
+
+#if 0
+UICollisionBehavior *collisionBehavior = [[UICollisionBehavior alloc] initWithItems:@[snapShot]];
+
+#if 0
+CGRect frame = box.frame;
+NSLog(@"BOX FRAME: %@ SNAPFRAME=%@", NSStringFromCGRect(frame), NSStringFromCGRect(snapShot.frame));
+//UIEdgeInsets insets = UIEdgeInsetsMake(0, frame.origin.x - 3, 0, self.bounds.size.width - (frame.origin.x + frame.size.width + 3) );
+//UIEdgeInsets insets = UIEdgeInsetsMake(0, -3, 0, -3);
+UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, 0, 0);
+[collisionBehavior setTranslatesReferenceBoundsIntoBoundaryWithInsets:insets];
+#else
+collisionBehavior.translatesReferenceBoundsIntoBoundary = YES;
+#endif
+
+[animator addBehavior: collisionBehavior];
+
+
+
+
+
+	//UIAttachmentBehavior *behavior = [[UIAttachmentBehavior alloc] initWithItem:b attachedToItem:c];
+	aBehavior = [[UIAttachmentBehavior alloc] initWithItem:snapShot attachedToAnchor:pt];
+	
+	aBehavior.damping = 0;
+	aBehavior.frequency = 0;
+	
+NSLog(@"finderDown=%@ INDEX:%d LENGTH=%f", NSStringFromCGPoint(pt), view.tag, aBehavior.length);
+
+	[animator addBehavior:aBehavior];
+
+#endif
+}
+
+- (void)finderMoved:(UITouch *)t inView:(UIView *)view selectedLabel:(NSInteger)idx
+{
+	if(!_useAnimation) {
+		return;
+	}
+	CGPoint pt = [t locationInView:self];
+	
+	CGFloat xDiff = pt.x - originalTouchPt.x;
+	CGFloat yDiff = pt.y - originalTouchPt.y;
+	
+	CGPoint newOrigin = snapbackPosition.origin;
+	newOrigin.x += xDiff;
+	newOrigin.x = MAX(newOrigin.x, minX);
+	newOrigin.x = MIN(newOrigin.x, maxX);
+	newOrigin.y += yDiff;
+	newOrigin.y = MAX(newOrigin.y, minY);
+	newOrigin.y = MIN(newOrigin.y, maxY);
+	
+	snapButton.frame = (CGRect){ newOrigin, snapbackPosition.size };
+	[snapButton selectLabel:idx];
+
+//NSLog(@"finderMoved=%@", NSStringFromCGPoint(pt));
+//[aBehavior setAnchorPoint:pt];
+
+}
+
+- (void)finderUp:(UITouch *)t inView:(UIView *)view
+{
+	if(!_useAnimation) {
+		return;
+	}
+	
+#if 0
+	[UIView animateWithDuration:.100 animations:^{
+		snapButton.frame = snapbackPosition;
+	} completion:^(BOOL finished) {
+		view.alpha = 1;
+		[snapButton removeFromSuperview];
+		snapButton = nil;
+	} ];
+#endif
+
+	UISnapBehavior *behavior = [[UISnapBehavior alloc] initWithItem:snapButton snapToPoint:originalViewPt];
+	behavior.damping = 1;
+	[animator addBehavior:behavior];
+
+#if 0
+	view.frame - snapbackPosition
+	CGPoint pt = [t locationInView:self];
+NSLog(@"finderReleased=%@", NSStringFromCGPoint(pt));
+	[animator removeAllBehaviors];
+	aBehavior = nil;
+#endif
+
+}
+
+- (void)dynamicAnimatorDidPause:(UIDynamicAnimator *)ani
+{
+  //NSLog(@"pause centerNow=%@ desired=%@", NSStringFromCGPoint(snapButton.center), NSStringFromCGPoint(originalViewPt));
+  	[UIView animateWithDuration:.10 animations:^{
+		snapButton.frame = snapbackPosition;
+	} completion:^(BOOL finished) {
+		originalSnapButton.alpha = 1;
+		originalSnapButton = nil;
+		[snapButton removeFromSuperview];
+		snapButton = nil;
+	} ];
+
+	[ani removeAllBehaviors];
+}
+
+#if 0
+- (void)setNeedsLayout
+{
+	if(!aBehavior) {
+		[super setNeedsLayout];
+		NSLog(@"UPDATE setNeedsLayout");
+	}
+
+
+}
+- (void)setNeedsUpdateConstraints
+{
+	if(!aBehavior)
+	{
+		NSLog(@"UPDATE setNeedsUpdateConstraints");
+		[super setNeedsUpdateConstraints];
+	}
+
+
+
+}
+
+- (void)updateConstraints
+{
+	[super updateConstraints];
+	NSLog(@"UPDATE updateConstraints");
+
+}
+- (void)updateConstraintsIfNeeded
+{
+	[super updateConstraintsIfNeeded];
+	NSLog(@"UPDATE updateConstraintsIfNeeded");
+
+}
+
+-(void)layoutSubviews
+{
+	[super layoutSubviews];
+	NSLog(@"UPDATE layoutSubviews");
+
+}
+-(void)layoutIfNeeded
+{
+	[super layoutIfNeeded];
+	NSLog(@"UPDATE layoutIfNeeded");
+
+}
+#endif
 
 @end

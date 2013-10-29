@@ -37,34 +37,27 @@
 #import "KOProtocol.h"
 
 @interface KOSwipeButton ()
-
-@property (nonatomic, retain) NSMutableArray *labels;
-@property (nonatomic, assign) CGPoint touchBeginPoint;
-@property (nonatomic, retain) UILabel *selectedLabel;
-@property (nonatomic, retain) UIImageView *bgView;
-@property (nonatomic, retain) UIImageView *foregroundView;
-@property (nonatomic, assign) BOOL trackPoint;
-@property (nonatomic, assign) BOOL tabButton;
-@property (nonatomic, retain) NSDate *firstTapDate;
-@property (nonatomic, assign) BOOL selecting;
-@property (nonatomic, retain) UIImage *blueImage;
-@property (nonatomic, retain) UIImage *pressedImage;
-@property (nonatomic, retain) UIImage *blueFgImage;
-@property (nonatomic, retain) UIImage *pressedFgImage;
-
 @end
 
 #define TIME_INTERVAL_FOR_DOUBLE_TAP 0.4
 
 @implementation KOSwipeButton
 {
-	BOOL didSetup;
-}
-@synthesize labels, touchBeginPoint, selectedLabel, delegate, bgView, trackPoint, tabButton, selecting, firstTapDate, blueImage, pressedImage, foregroundView, blueFgImage, pressedFgImage;
-
-- (void)setFrame:(CGRect)frame
-{
-    [super setFrame:frame];
+	BOOL			didSetup;
+	
+	NSMutableArray	*labels;
+	CGPoint			touchBeginPoint;
+	UILabel			*selectedLabel;
+	UIImageView		*bgView;
+	UIImageView		*foregroundView;
+	BOOL			trackPoint;
+	BOOL			tabButton;
+	NSDate			*firstTapDate;
+	BOOL			selecting;
+	UIImage			*blueImage;
+	UIImage			*pressedImage;
+	UIImage			*blueFgImage;
+	UIImage			*pressedFgImage;
 }
 
 - (instancetype)init{
@@ -106,7 +99,7 @@
     int topInset = 3;
     int bottomInset = 8;
     
-    self.labels = [[NSMutableArray alloc] init];
+    labels = [[NSMutableArray alloc] init];
     
     UIFont *f = [UIFont systemFontOfSize:15];
     
@@ -164,6 +157,8 @@
 
 - (void)setKeys:(NSString *)newKeys
 {
+	_keys = newKeys;
+
     for (int i = 0; i < MIN(newKeys.length, 5); i++) {
         [[labels objectAtIndex:i] setText:[newKeys substringWithRange:NSMakeRange(i, 1)]];
         
@@ -203,11 +198,11 @@
     }
 }
 
-- (void)selectLabel:(int)idx
+- (void)selectLabel:(NSInteger)idx
 {
     selectedLabel = nil;
     
-    for (int i = 0; i < labels.count; i++) {
+    for (NSInteger i = 0; i < labels.count; i++) {
         UILabel *l = [labels objectAtIndex:i];
         l.highlighted = (idx == i);
         
@@ -218,6 +213,22 @@
     bgView.highlighted = selectedLabel != nil;
     foregroundView.highlighted = selectedLabel != nil;
 }
+
+- (void)finderDown:(CGPoint)pt inView:(UIView *)view
+{
+NSLog(@"finderDown=%@", NSStringFromCGPoint(pt));
+}
+
+- (void)finderMoved:(CGPoint)pt inView:(UIView *)view
+{
+NSLog(@"finderMoved=%@", NSStringFromCGPoint(pt));
+}
+
+- (void)finderReleased:(CGPoint)pt inView:(UIView *)view
+{
+NSLog(@"finderReleased=%@", NSStringFromCGPoint(pt));
+}
+
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
@@ -236,8 +247,10 @@
         }
         firstTapDate = [NSDate date];
         
-        [delegate trackPointStarted];
-    }
+        [_delegate trackPointStarted];
+    } else {
+		[_delegate finderDown:t inView:self];
+	}
     
     [self selectLabel:2];
 }
@@ -252,46 +265,62 @@
     CGFloat distance = sqrt(xdiff * xdiff + ydiff * ydiff);
     
     if (trackPoint) {
-        [delegate trackPointMovedX:xdiff Y:ydiff selecting:selecting];
+        [_delegate trackPointMovedX:xdiff Y:ydiff selecting:selecting];
         return;
     }
     
+	NSInteger idx = 2;
     if (distance > 250) {
-        [self selectLabel:-1];
+		idx = -1;
+        //[self selectLabel:-1];
     } else if (!tabButton && (distance > 20)) {
         CGFloat angle = atan2(xdiff, ydiff);
         
         if (angle >= 0 && angle < M_PI_2) {
-            [self selectLabel:0];
+			idx = 0;
+            //[self selectLabel:0];
         } else if (angle >= 0 && angle >= M_PI_2) {
-            [self selectLabel:3];
+			idx = 3;
+            //[self selectLabel:3];
         } else if (angle < 0 && angle > -M_PI_2) {
-            [self selectLabel:1];
+			idx = 1;
+            //[self selectLabel:1];
         } else if (angle < 0 && angle <= -M_PI_2) {
-            [self selectLabel:4];
+			idx = 4;
+            //[self selectLabel:4];
         }
-    } else {
-        [self selectLabel:2];
     }
+	[_delegate finderMoved:t inView:self selectedLabel:idx];
+	[self selectLabel:idx];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (selectedLabel != nil) {
+    if (selectedLabel) {
         if (tabButton) {
-            [delegate insertText:@"\t"];
-        } else if (! trackPoint) {
+            [_delegate insertText:@"\t"];
+        } else if (!trackPoint) {
             NSString *textToInsert = selectedLabel.text;
-            [delegate insertText:textToInsert];
+            [_delegate insertText:textToInsert];
         }
     }
     
     [self selectLabel:-1];
+	
+	if (!trackPoint) {
+		UITouch *t = [touches anyObject];
+		[_delegate finderUp:t inView:self];
+	}
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [self selectLabel:-1];
+
+	if (!trackPoint) {
+		UITouch *t = [touches anyObject];
+		[_delegate finderUp:t inView:self];
+	}
 }
 
 - (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event

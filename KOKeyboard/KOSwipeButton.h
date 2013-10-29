@@ -36,7 +36,8 @@
 
 @interface KOSwipeButton : UIView
 @property (nonatomic, weak) id <KOProtocol> delegate;
+@property (nonatomic, strong) NSString *keys;
 
-- (void)setKeys:(NSString *)newKeys;
+- (void)selectLabel:(NSInteger)idx;
 
 @end
