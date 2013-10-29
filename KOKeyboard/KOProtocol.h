@@ -10,6 +10,7 @@
 
 - (void)trackPointStarted;
 - (void)trackPointMovedX:(int)xdiff Y:(int)ydiff selecting:(BOOL)selecting;
+- (void)trackPointEnded;
 - (void)insertText:(NSString *)text;
 
 // for animation

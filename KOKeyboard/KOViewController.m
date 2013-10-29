@@ -54,6 +54,7 @@
 	[self.view addSubview:textView];
 	kov = [[KOKeyboardRow alloc] initWithDelegate:textView];
 	kov.keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
+	kov.animation = koTraditinalAnimation; //koNoAnimation koTraditinalAnimation;
 	
 	NSMutableIndexSet *portraitSet= [NSMutableIndexSet new];
 	NSMutableIndexSet *landscapeSet = [NSMutableIndexSet new];

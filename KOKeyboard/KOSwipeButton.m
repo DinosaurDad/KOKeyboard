@@ -36,10 +36,12 @@
 #import "KOKeyboardRow.h"
 #import "KOProtocol.h"
 
+#import "CreateButton.h"
+
 @interface KOSwipeButton ()
 @end
 
-#define TIME_INTERVAL_FOR_DOUBLE_TAP 0.4
+#define TIME_INTERVAL_FOR_DOUBLE_TAP 1.0f
 
 @implementation KOSwipeButton
 {
@@ -81,13 +83,27 @@
 		NSLog(@"YIKES: did setup!");
 		return;
 	}
+	didSetup = YES;
+
+	blueFgImage		= [UIImage imageNamed:@"hal-white.png"];
+	pressedFgImage	= [UIImage imageNamed:@"hal-blue.png"];
+
+	CreateButton *b = [CreateButton new];
+	UIImage *b1 = [b buttonImage:CGSizeMake(41, 41) type:UIKeyboardAppearanceLight];
+	UIImage *b2 = [b buttonImage:CGSizeMake(41, 41) color:[UIColor colorWithWhite:0.66 alpha:1]];
+	UIImage *b3 = [b buttonImage:CGSizeMake(41, 41) color:[UIColor blueColor]];
 	
-    UIImage *bgImg1 = [[UIImage imageNamed:@"key.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(9, 9, 9, 9)];
-    UIImage *bgImg2 = [[UIImage imageNamed:@"key-pressed.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 9, 9)];
+    UIImage *bgImg1	= [b1 resizableImageWithCapInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
+    pressedImage	= [b2 resizableImageWithCapInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
+	blueImage		= [b3 resizableImageWithCapInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
+
+    //UIImage *bgImg1 = [[UIImage imageNamed:@"key.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(9, 9, 9, 9)];
+    //UIImage *bgImg2 = [[UIImage imageNamed:@"key-pressed.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 9, 9)];
+
 	bgView = [[UIImageView alloc] initWithFrame:self.bounds];
 
     [bgView setImage:bgImg1];
-    [bgView setHighlightedImage:bgImg2];
+    [bgView setHighlightedImage:pressedImage];
     bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self addSubview:bgView];
 	// NSLog(@"IMAGE FRAME: %@", NSStringFromCGRect(bgView.frame));
@@ -152,7 +168,6 @@
     [labels addObject:l];
     
     firstTapDate = [[NSDate date] dateByAddingTimeInterval:-1];
-	didSetup = YES;
 }
 
 - (void)setKeys:(NSString *)newKeys
@@ -173,22 +188,14 @@
             else {
                 if (trackPoint) {
                     [[labels objectAtIndex:i] setHidden:YES];
-                    
-                    [[labels objectAtIndex:i] setFont:[UIFont systemFontOfSize:20]];
-                    blueImage = [UIImage imageNamed:@"key-blue.png"];
-                    pressedImage = [UIImage imageNamed:@"key-pressed.png"];
-                    
+                    //[[labels objectAtIndex:i] setFont:[UIFont systemFontOfSize:20]];
                     UIImage *bgImg1 = [UIImage imageNamed:@"hal-black.png"];
-                    UIImage *bgImg2 = [UIImage imageNamed:@"hal-blue.png"];
-                    blueFgImage = [UIImage imageNamed:@"hal-white.png"];
-                    pressedFgImage = bgImg2;
                     foregroundView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 19, 19)];
-                    foregroundView.frame = CGRectMake((int)((self.frame.size.width - foregroundView.frame.size.width) / 2), (int)((self.frame.size.height - foregroundView.frame.size.height) / 2), 19, 19);
+                    foregroundView.frame = CGRectMake(((self.bounds.size.width - 19) / 2), ((self.bounds.size.height - 19) / 2), 19, 19);
                     [foregroundView setImage:bgImg1];
-                    [foregroundView setHighlightedImage:bgImg2];
+                    [foregroundView setHighlightedImage:pressedFgImage];
                     foregroundView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
                     [self addSubview:foregroundView];
-
                 } else {
                     [[labels objectAtIndex:i] setText:@"TAB"];
                     [[labels objectAtIndex:i] setFrame:self.bounds];
@@ -214,6 +221,7 @@
     foregroundView.highlighted = selectedLabel != nil;
 }
 
+#if 0
 - (void)finderDown:(CGPoint)pt inView:(UIView *)view
 {
 NSLog(@"finderDown=%@", NSStringFromCGPoint(pt));
@@ -228,7 +236,7 @@ NSLog(@"finderMoved=%@", NSStringFromCGPoint(pt));
 {
 NSLog(@"finderReleased=%@", NSStringFromCGPoint(pt));
 }
-
+#endif
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
@@ -272,22 +280,17 @@ NSLog(@"finderReleased=%@", NSStringFromCGPoint(pt));
 	NSInteger idx = 2;
     if (distance > 250) {
 		idx = -1;
-        //[self selectLabel:-1];
     } else if (!tabButton && (distance > 20)) {
         CGFloat angle = atan2(xdiff, ydiff);
         
         if (angle >= 0 && angle < M_PI_2) {
 			idx = 0;
-            //[self selectLabel:0];
         } else if (angle >= 0 && angle >= M_PI_2) {
 			idx = 3;
-            //[self selectLabel:3];
         } else if (angle < 0 && angle > -M_PI_2) {
 			idx = 1;
-            //[self selectLabel:1];
         } else if (angle < 0 && angle <= -M_PI_2) {
 			idx = 4;
-            //[self selectLabel:4];
         }
     }
 	[_delegate finderMoved:t inView:self selectedLabel:idx];
@@ -296,18 +299,21 @@ NSLog(@"finderReleased=%@", NSStringFromCGPoint(pt));
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (selectedLabel) {
-        if (tabButton) {
-            [_delegate insertText:@"\t"];
-        } else if (!trackPoint) {
-            NSString *textToInsert = selectedLabel.text;
-            [_delegate insertText:textToInsert];
-        }
-    }
-    
-    [self selectLabel:-1];
-	
-	if (!trackPoint) {
+	if (selectedLabel) {
+		if (tabButton) {
+			[_delegate insertText:@"\t"];
+		} else if (!trackPoint) {
+			NSString *textToInsert = selectedLabel.text;
+			[_delegate insertText:textToInsert];
+		}
+	}
+	[self selectLabel:-1];
+
+	if (trackPoint) {
+		if(selecting) {
+			[_delegate trackPointEnded];
+		}
+	} else {
 		UITouch *t = [touches anyObject];
 		[_delegate finderUp:t inView:self];
 	}
