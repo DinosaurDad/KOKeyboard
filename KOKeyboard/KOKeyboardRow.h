@@ -32,13 +32,18 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-@interface KOKeyboardRow : UIView
-@property (nonatomic, weak) id <UITextInput> delegate;
-@property (nonatomic, strong) NSString *keys;
-@property (nonatomic, assign) BOOL useAnimation;
+typedef enum {koNoAnimation, koSnapbackAnimation, koTraditinalAnimation } koAnimation;
 
-+ (KOKeyboardRow *)applyToTextControl:(id <UITextInput>) delegate;
+@interface KOKeyboardRow : UIView
+- (instancetype)initWithDelegate:(id <UITextInput>) delegate;	// initial delegate
+@property (nonatomic, weak) id <UITextInput> delegate;			// may change it in real time
+@property (nonatomic, assign) koAnimation animation;			// animate swiping the button
+@property (nonatomic, copy) NSString *keys;						// 5 characters per button
+@property (nonatomic, copy) NSIndexSet *portraitSet;			// which buttons to ues in portrait mode
+@property (nonatomic, copy) NSIndexSet *landscapeSet;			// which buttons to ues in portrait mode
 
 - (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation;
+
+- (void)setup;
 
 @end

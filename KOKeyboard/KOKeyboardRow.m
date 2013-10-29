@@ -31,6 +31,9 @@
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
+//  Modified by David Hoerl on 28.10.2013
+//  Copyright (c) 2013 David Hoerl
+//
 
 #import "KOKeyboardRow.h"
 #import "KOSwipeButton.h"
@@ -44,8 +47,6 @@ static BOOL isPhone;
 @implementation KOKeyboardRow
 {
 	NSMutableArray			*constraints;
-	NSMutableIndexSet		*pSet;
-	NSMutableIndexSet		*lSet;
 	
 	CGRect					startLocation;			// cursor control
 	
@@ -68,7 +69,6 @@ static BOOL isPhone;
 	NSInteger				buttonWidth;
 }
 
-
 + (BOOL)requiresConstraintBasedLayout
 {
 	return YES;
@@ -79,74 +79,47 @@ static BOOL isPhone;
 	isPhone = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone;
 }
 
-+ (KOKeyboardRow *)applyToTextControl:(id <UITextInput>) delegate
-{
-	KOKeyboardRow *kov = [KOKeyboardRow new];
-	kov.delegate = delegate;
-	
-	return kov;
-}
-
-- (instancetype)init
+- (instancetype)initWithDelegate:(id <UITextInput>)del;
 {
 	if((self = [super init])) {
-		[self setup];
+		self.delegate = del;
 	}
 	return self;
 }
 
 - (void)setup
 {
-_useAnimation = YES;
-	animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
-	animator.delegate = self;
+	if(_animation == koSnapbackAnimation) {
+		animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
+		animator.delegate = self;
+	}
 	
 	constraints			= [NSMutableArray array];
-	pSet				= [NSMutableIndexSet new];
-	lSet				= [NSMutableIndexSet new];
 	
     self.backgroundColor = [UIColor colorWithRed:156/255. green:155/255. blue:166/255. alpha:1.];
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth; // UIViewAutoresizingFlexibleHeight;
 	[self setTranslatesAutoresizingMaskIntoConstraints:YES];
     
+	buttonCount = ([_keys length]+4)/5;
+
+	barWidth = [UIScreen mainScreen].bounds.size.width;
+	
 	if(isPhone) {
 		barHeight = 56;
-		barWidth = 320;
 
 		buttonHeight = 50;
 		horzMargin = 6;
 		buttonSpacing = 2;
-		buttonCount = 8;
-//keys = @"67589\"[]{}'<>\\|◉◉◉◉◉120346758967589";
-//keys = @"12345abcde◉◉◉◉◉fghij◉◉◉◉◉123451234512345";
-_keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 
 		//keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
-		// K K O K 0 K K K
-		//[pSet addIndex:0];	// special
-		[pSet addIndex:1];
-		[pSet addIndex:2];
-		[pSet addIndex:3];
-		[pSet addIndex:5];
-		
-		//[lSet addIndex:0];	// special
-		[lSet addIndex:1];
-		[lSet addIndex:3];
-		[lSet addIndex:4];
-		[lSet addIndex:5];
-		[lSet addIndex:6];
-		[lSet addIndex:7];
-
 	} else {
 		barHeight = 72;
-		barWidth = 768;
 
 		buttonHeight = 60;
 		horzMargin = 4;
 		buttonSpacing = 6;
-		buttonCount = 11;
 
-		_keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
+		//_keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
     }
     self.bounds = CGRectMake(0, 0, barWidth, barHeight);
 
@@ -157,7 +130,16 @@ _keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 	UIView *c = self;
 	NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
 	
-    for (int i = 0; i < buttonCount; i++) {
+	__block NSUInteger firstCommonIndex = NSNotFound;
+	[_portraitSet enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop)
+		{
+			if([_landscapeSet containsIndex:idx]) {
+				firstCommonIndex = idx;
+				*stop = YES;
+			}
+		} ];
+	
+    for (NSInteger i = 0; i < buttonCount; i++) {
 		UIView *lv = c;
 		c = [UIView new];
 		[c setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -264,22 +246,21 @@ _keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 #endif
 }
 
-- (void)setDelegate:(id<UITextInput>)delegate
+- (void)setDelegate:(id<UITextInput>)del
 {
-	_delegate = delegate;
-	if([delegate isKindOfClass:[UITextView class]]) {
-		((UITextView *)delegate).inputAccessoryView = self;
+	_delegate = del;
+	if([_delegate isKindOfClass:[UITextView class]]) {
+		((UITextView *)_delegate).inputAccessoryView = self;
 	} else
-	if([delegate isKindOfClass:[UITextField class]]) {
-		((UITextField *)delegate).inputAccessoryView = self;
+	if([_delegate isKindOfClass:[UITextField class]]) {
+		((UITextField *)_delegate).inputAccessoryView = self;
 	}
-	//self._delegate = t;
 }
 
 - (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
 	BOOL isPortrait = UIInterfaceOrientationIsPortrait(interfaceOrientation);
-	NSIndexSet *set = isPortrait ? pSet : lSet;
+	NSIndexSet *set = isPortrait ? _portraitSet : _landscapeSet;
 
 	[constraints enumerateObjectsUsingBlock:^(NSLayoutConstraint *lc, NSUInteger idx, BOOL *stop)
 		{
@@ -373,7 +354,7 @@ _keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
 
 - (void)finderDown:(UITouch *)t inView:(UIView *)view
 {
-	if(!_useAnimation) {
+	if(_animation != koNoAnimation) {
 		return;
 	}
 
@@ -393,10 +374,6 @@ NSLog(@"CENTER IN MY COORDINATES %@", NSStringFromCGPoint(originalViewPt));
 		maxY = barHeight - view.bounds.size.height;
 	}
 
-#if 0
-	snapShot = [view snapshotViewAfterScreenUpdates:NO];
-#endif
-
 	originalSnapButton = (KOSwipeButton *)view;
 	view.alpha = 0;
 	snapButton = [[KOSwipeButton alloc] initWithFrame:[view convertRect:view.bounds toView:self]];
@@ -404,45 +381,11 @@ NSLog(@"CENTER IN MY COORDINATES %@", NSStringFromCGPoint(originalViewPt));
 	
 //NSLog(@"SnapShot frame: %@", NSStringFromCGRect(snapButton.frame));
 	[self addSubview:snapButton];
-
-
-
-#if 0
-UICollisionBehavior *collisionBehavior = [[UICollisionBehavior alloc] initWithItems:@[snapShot]];
-
-#if 0
-CGRect frame = box.frame;
-NSLog(@"BOX FRAME: %@ SNAPFRAME=%@", NSStringFromCGRect(frame), NSStringFromCGRect(snapShot.frame));
-//UIEdgeInsets insets = UIEdgeInsetsMake(0, frame.origin.x - 3, 0, self.bounds.size.width - (frame.origin.x + frame.size.width + 3) );
-//UIEdgeInsets insets = UIEdgeInsetsMake(0, -3, 0, -3);
-UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, 0, 0);
-[collisionBehavior setTranslatesReferenceBoundsIntoBoundaryWithInsets:insets];
-#else
-collisionBehavior.translatesReferenceBoundsIntoBoundary = YES;
-#endif
-
-[animator addBehavior: collisionBehavior];
-
-
-
-
-
-	//UIAttachmentBehavior *behavior = [[UIAttachmentBehavior alloc] initWithItem:b attachedToItem:c];
-	aBehavior = [[UIAttachmentBehavior alloc] initWithItem:snapShot attachedToAnchor:pt];
-	
-	aBehavior.damping = 0;
-	aBehavior.frequency = 0;
-	
-NSLog(@"finderDown=%@ INDEX:%d LENGTH=%f", NSStringFromCGPoint(pt), view.tag, aBehavior.length);
-
-	[animator addBehavior:aBehavior];
-
-#endif
 }
 
 - (void)finderMoved:(UITouch *)t inView:(UIView *)view selectedLabel:(NSInteger)idx
 {
-	if(!_useAnimation) {
+	if(_animation != koNoAnimation) {
 		return;
 	}
 	CGPoint pt = [t locationInView:self];
@@ -460,40 +403,32 @@ NSLog(@"finderDown=%@ INDEX:%d LENGTH=%f", NSStringFromCGPoint(pt), view.tag, aB
 	
 	snapButton.frame = (CGRect){ newOrigin, snapbackPosition.size };
 	[snapButton selectLabel:idx];
-
-//NSLog(@"finderMoved=%@", NSStringFromCGPoint(pt));
-//[aBehavior setAnchorPoint:pt];
-
 }
 
 - (void)finderUp:(UITouch *)t inView:(UIView *)view
 {
-	if(!_useAnimation) {
+	switch(_animation) {
+	case koNoAnimation:
 		return;
-	}
 	
-#if 0
-	[UIView animateWithDuration:.100 animations:^{
-		snapButton.frame = snapbackPosition;
-	} completion:^(BOOL finished) {
-		view.alpha = 1;
-		[snapButton removeFromSuperview];
-		snapButton = nil;
-	} ];
-#endif
-
-	UISnapBehavior *behavior = [[UISnapBehavior alloc] initWithItem:snapButton snapToPoint:originalViewPt];
-	behavior.damping = 1;
-	[animator addBehavior:behavior];
-
-#if 0
-	view.frame - snapbackPosition
-	CGPoint pt = [t locationInView:self];
-NSLog(@"finderReleased=%@", NSStringFromCGPoint(pt));
-	[animator removeAllBehaviors];
-	aBehavior = nil;
-#endif
-
+	case koTraditinalAnimation:
+	{
+		[UIView animateWithDuration:.100 animations:^{
+			snapButton.frame = snapbackPosition;
+		} completion:^(BOOL finished) {
+			view.alpha = 1;
+			[snapButton removeFromSuperview];
+			snapButton = nil;
+		} ];
+	}	break;
+	
+	case koSnapbackAnimation:
+	{
+		UISnapBehavior *behavior = [[UISnapBehavior alloc] initWithItem:snapButton snapToPoint:originalViewPt];
+		behavior.damping = 1;
+		[animator addBehavior:behavior];
+	}	break;
+	}
 }
 
 - (void)dynamicAnimatorDidPause:(UIDynamicAnimator *)ani
