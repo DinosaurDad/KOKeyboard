@@ -62,7 +62,8 @@
 	UIImage			*pressedFgImage;
 }
 
-- (instancetype)init{
+- (instancetype)init
+{
 	if((self = [super init])) {
 		[self setup];
 	}
@@ -89,11 +90,9 @@
 	pressedFgImage	= [UIImage imageNamed:@"hal-blue.png"];
 
 	CreateButton *b = [CreateButton new];
-	UIImage *b1 = [b buttonImage:CGSizeMake(41, 41) type:UIKeyboardAppearanceLight];
 	UIImage *b2 = [b buttonImage:CGSizeMake(41, 41) color:[UIColor colorWithWhite:0.66 alpha:1]];
 	UIImage *b3 = [b buttonImage:CGSizeMake(41, 41) color:[UIColor blueColor]];
 	
-    UIImage *bgImg1	= [b1 resizableImageWithCapInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
     pressedImage	= [b2 resizableImageWithCapInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
 	blueImage		= [b3 resizableImageWithCapInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
 
@@ -101,10 +100,8 @@
     //UIImage *bgImg2 = [[UIImage imageNamed:@"key-pressed.png"] resizableImageWithCapInsets:UIEdgeInsetsMake(0, 9, 9, 9)];
 
 	bgView = [[UIImageView alloc] initWithFrame:self.bounds];
-
-    [bgView setImage:bgImg1];
     [bgView setHighlightedImage:pressedImage];
-    bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+	bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     [self addSubview:bgView];
 	// NSLog(@"IMAGE FRAME: %@", NSStringFromCGRect(bgView.frame));
     
@@ -190,9 +187,12 @@
                     [[labels objectAtIndex:i] setHidden:YES];
                     //[[labels objectAtIndex:i] setFont:[UIFont systemFontOfSize:20]];
                     UIImage *bgImg1 = [UIImage imageNamed:@"hal-black.png"];
+					//bgImg1 = [bgImg1 imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
                     foregroundView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 19, 19)];
                     foregroundView.frame = CGRectMake(((self.bounds.size.width - 19) / 2), ((self.bounds.size.height - 19) / 2), 19, 19);
                     [foregroundView setImage:bgImg1];
+					//foregroundView.tintColor = [UIColor redColor];
+
                     [foregroundView setHighlightedImage:pressedFgImage];
                     foregroundView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
                     [self addSubview:foregroundView];
@@ -203,6 +203,12 @@
             }
         }
     }
+	
+	UIKeyboardAppearance app = [self isTrackingPoint] ? UIKeyboardAppearanceDark : UIKeyboardAppearanceLight;
+	CreateButton *b = [CreateButton new];
+	UIImage *b1 = [b buttonImage:CGSizeMake(41, 41) type:app];
+    UIImage *bgImg1	= [b1 resizableImageWithCapInsets:UIEdgeInsetsMake(20, 20, 20, 20)];
+    [bgView setImage:bgImg1];
 }
 
 - (void)selectLabel:(NSInteger)idx
@@ -219,6 +225,11 @@
     
     bgView.highlighted = selectedLabel != nil;
     foregroundView.highlighted = selectedLabel != nil;
+}
+
+- (BOOL)isTrackingPoint
+{
+	return trackPoint;
 }
 
 #if 0

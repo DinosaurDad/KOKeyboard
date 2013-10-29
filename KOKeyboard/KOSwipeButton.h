@@ -39,5 +39,6 @@
 @property (nonatomic, strong) NSString *keys;
 
 - (void)selectLabel:(NSInteger)idx;
+- (BOOL)isTrackingPoint;
 
 @end

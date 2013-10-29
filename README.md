@@ -11,7 +11,8 @@ Oct 26, 2013
 - added keyclicks using the standard approved API
 - rolled in all the open issues from the original repository
 - fixed a bug on the cursor control if the TextView had scrolled
-- added the abilty to just get an object and set a delegate on it. Needed if you want to create one object and share it
+- fixed a bug in selecting text with the cursor control
+- pop a system text menu to copy selection
 
 Original
 ===================================

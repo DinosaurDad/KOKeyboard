@@ -200,9 +200,14 @@ static BOOL isRetina;
 	[self.subviews enumerateObjectsUsingBlock:^(UIView *enclosingView, NSUInteger idx, BOOL *stop)
 		{
 			//NSLog(@"BUTTON: %@ subviews: %@", enclosingView, enclosingView.subviews);
-			UIView *button = [enclosingView.subviews lastObject];
+			KOSwipeButton *button = [enclosingView.subviews lastObject];
 			assert(button);
-			NSLayoutConstraint *le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstCommonView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+			NSLayoutConstraint *le;
+			if([button isTrackingPoint]) {
+				le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:button.bounds.size.height];
+			} else {
+				le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstCommonView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+			}
 			le.priority = UILayoutPriorityRequired - 1;
 			NSLayoutConstraint *l0 = [NSLayoutConstraint constraintWithItem:enclosingView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:nil attribute:0 multiplier:1 constant:10000];
 			
