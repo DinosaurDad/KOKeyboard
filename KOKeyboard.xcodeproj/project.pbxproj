@@ -26,6 +26,7 @@
 		DE98036F181C864900ABE541 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = DE98036D181C864900ABE541 /* LICENSE */; };
 		DE980370181C864900ABE541 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = DE98036E181C864900ABE541 /* README.md */; };
 		DEA98A7A1820198B00A273DE /* CreateButton.m in Sources */ = {isa = PBXBuildFile; fileRef = DEA98A791820198B00A273DE /* CreateButton.m */; };
+		DEF0FACF18494FA600A24442 /* KOKeyboard.png in Resources */ = {isa = PBXBuildFile; fileRef = DEF0FACE18494FA600A24442 /* KOKeyboard.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +58,7 @@
 		DE980371181CA9AA00ABE541 /* KOProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KOProtocol.h; sourceTree = "<group>"; };
 		DEA98A781820198B00A273DE /* CreateButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateButton.h; sourceTree = "<group>"; };
 		DEA98A791820198B00A273DE /* CreateButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CreateButton.m; sourceTree = "<group>"; };
+		DEF0FACE18494FA600A24442 /* KOKeyboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = KOKeyboard.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 			children = (
 				DE98036D181C864900ABE541 /* LICENSE */,
 				DE98036E181C864900ABE541 /* README.md */,
+				DEF0FACE18494FA600A24442 /* KOKeyboard.png */,
 				665C982D15CC2C91001B6908 /* KOKeyboard */,
 				665C982615CC2C91001B6908 /* Frameworks */,
 				665C982415CC2C91001B6908 /* Products */,
@@ -216,6 +219,7 @@
 				DE980370181C864900ABE541 /* README.md in Resources */,
 				665C985815CC2EC5001B6908 /* hal-white.png in Resources */,
 				665C985915CC2EC5001B6908 /* hal-white@2x.png in Resources */,
+				DEF0FACF18494FA600A24442 /* KOKeyboard.png in Resources */,
 				DE98036F181C864900ABE541 /* LICENSE in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
