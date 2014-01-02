@@ -54,6 +54,7 @@
 	[self.view addSubview:textView];
 	kov = [[KOKeyboardRow alloc] initWithDelegate:textView];
 	kov.keys = @"^$*?+[]\\()◉◉◉◉◉{}.|:◉◉◉◉◉\",_/;0123456789";
+//kov.keys = @"0123456789ABCDEFGHIJ";
 	kov.animation = koTraditinalAnimation; //koNoAnimation koTraditinalAnimation;
 	
 	NSMutableIndexSet *portraitSet= [NSMutableIndexSet new];
@@ -64,7 +65,7 @@
 	[portraitSet addIndex:2];
 	[portraitSet addIndex:3];
 	[portraitSet addIndex:5];
-	
+
 	[landscapeSet addIndex:0];
 	[landscapeSet addIndex:1];
 	[landscapeSet addIndex:3];
@@ -72,9 +73,9 @@
 	[landscapeSet addIndex:5];
 	[landscapeSet addIndex:6];
 	[landscapeSet addIndex:7];
-	
+
 	kov.portraitSet = portraitSet;
-	kov.landscapeSet = landscapeSet;
+	kov.landscapeSet = landscapeSet; // portraitSet landscapeSet;
 	[kov setup];
 
 	[textView becomeFirstResponder];
@@ -84,12 +85,19 @@
 {
 	[super willAnimateRotationToInterfaceOrientation:interfaceOrientation duration:duration];
 	
-	NSLog(@"WILL ANIMATE!");
+	//NSLog(@"WILL ANIMATE!");
 	
 	[kov switchToOrientation:interfaceOrientation];
 
 	//UIView *sv = [kov.subviews lastObject];
 	//[sv removeFromSuperview];
+}
+
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+{
+	[super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+	
+	//NSLog(@"DID: %@", NSStringFromCGRect(kov.frame));
 }
 
 

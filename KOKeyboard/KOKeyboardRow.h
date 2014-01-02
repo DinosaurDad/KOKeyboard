@@ -34,16 +34,16 @@
 
 typedef enum {koNoAnimation, koSnapbackAnimation, koTraditinalAnimation } koAnimation;
 
-@interface KOKeyboardRow : UIToolbar // UIToolbar UIView
-- (instancetype)initWithDelegate:(id <UITextInput>) delegate;	// initial delegate
+@interface KOKeyboardRow : UIInputView
 @property (nonatomic, weak) id <UITextInput> koDelegate;		// may change it in real time
 @property (nonatomic, assign) koAnimation animation;			// animate swiping the button
 @property (nonatomic, copy) NSString *keys;						// 5 characters per button
 @property (nonatomic, copy) NSIndexSet *portraitSet;			// which buttons to ues in portrait mode
 @property (nonatomic, copy) NSIndexSet *landscapeSet;			// which buttons to ues in portrait mode
 
-- (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation;
+- (instancetype)initWithDelegate:(id <UITextInput>) delegate;	// initial delegate
 
+- (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation;
 - (void)setup;
 
 @end

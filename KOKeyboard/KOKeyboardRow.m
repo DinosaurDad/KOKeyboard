@@ -47,9 +47,18 @@
 static BOOL isPhone;
 static BOOL isRetina;
 
+static CGRect				bounds;
+static NSInteger			barWidth;
+static NSInteger			barHeight;
+static NSInteger			buttonHeight;
+static NSInteger			horzMargin;
+static NSInteger			buttonSpacing;
+
 @implementation KOKeyboardRow
 {
-	NSMutableArray			*constraints;
+	NSMutableArray			*enclosingViews;
+	NSMutableSet			*pConstraints;
+	NSMutableSet			*lConstraints;
 	
 	CGRect					startLocation;			// cursor control
 	
@@ -62,14 +71,6 @@ static BOOL isRetina;
 	
 	UIDynamicAnimator		*animator;
 	UIAttachmentBehavior	*aBehavior;
-	
-	NSInteger				barHeight;
-	NSInteger				barWidth;
-    NSInteger				buttonHeight;
-    NSInteger				horzMargin;
-    NSInteger				buttonSpacing;
-    NSInteger				buttonCount;
-	NSInteger				buttonWidth;
 }
 
 + (BOOL)requiresConstraintBasedLayout
@@ -81,29 +82,6 @@ static BOOL isRetina;
 {
 	isPhone = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone;
 	isRetina = [[UIScreen mainScreen] scale] > 1;
-}
-
-- (instancetype)initWithDelegate:(id <UITextInput>)del;
-{
-	if((self = [super init])) {
-		self.koDelegate = del;
-	}
-	return self;
-}
-
-- (void)setup
-{
-	if(_animation == koSnapbackAnimation) {
-		animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
-		animator.delegate = self;
-	}
-	
-	constraints			= [NSMutableArray array];
-	
-    self.autoresizingMask = UIViewAutoresizingFlexibleWidth; // UIViewAutoresizingFlexibleHeight;
-	[self setTranslatesAutoresizingMaskIntoConstraints:YES];
-    
-	buttonCount = ([_keys length]+4)/5;
 
 	barWidth = [UIScreen mainScreen].bounds.size.width;
 	
@@ -124,104 +102,161 @@ static BOOL isRetina;
 
 		//_keys = @"TTTTT()\"[]{}'<>\\/$´`~^|€£◉◉◉◉◉-+=%*!?#@&_:;,.1203467589";
     }
-    self.bounds = CGRectMake(0, 0, barWidth, barHeight);
+    bounds = CGRectMake(0, 0, barWidth, barHeight);
+}
 
-	buttonWidth = (barWidth - buttonCount * buttonSpacing - 2*horzMargin) / buttonCount;
++ (CGRect)bounds
+{
+	return bounds;
+}
+
+- (instancetype)initWithDelegate:(id <UITextInput>)del;
+{
+	if((self = [super initWithFrame:[KOKeyboardRow bounds] inputViewStyle:UIInputViewStyleKeyboard])) {
+		self.koDelegate = del;
+	}
+	//NSLog(@"FRAME: %@", NSStringFromCGRect(self.frame));
+	return self;
+}
+
+- (void)setup
+{
+	if(_animation == koSnapbackAnimation) {
+		animator = [[UIDynamicAnimator alloc] initWithReferenceView:self];
+		animator.delegate = self;
+	}
+
+	NSUInteger firstIdx = [self.subviews count];
+	
+	// NSLog(@"self.subviews %d %@", [self.subviews count], self.subviews);
+	
+	NSInteger buttonCount = ([_keys length]+4)/5;
+	assert(buttonCount);
+
+	enclosingViews	= [NSMutableArray arrayWithCapacity:buttonCount];
+	pConstraints	= [NSMutableSet setWithCapacity:buttonCount];
+	lConstraints	= [NSMutableSet setWithCapacity:buttonCount];
+	
+    self.autoresizingMask = UIViewAutoresizingFlexibleWidth; // UIViewAutoresizingFlexibleHeight;
+	[self setTranslatesAutoresizingMaskIntoConstraints:YES];
+
+	NSInteger buttonWidth = (barWidth - buttonCount * buttonSpacing - 2*horzMargin) / buttonCount;
+	assert(buttonWidth);
+	
+//NSInteger maxButtonWidth = (maxButtonWidth * 4)/3;	// somewhat bigger
+//assert(maxButtonWidth);
+
 	NSLayoutConstraint *lc;
-
 	KOSwipeButton *b;
-	UIView *c = self;
 	NSUInteger verticalMargin = (barHeight - buttonHeight) / 2;
-	
-	__block NSUInteger firstCommonIndex = NSNotFound;
-	[_portraitSet enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop)
-		{
-			if([_landscapeSet containsIndex:idx]) {
-				firstCommonIndex = idx;
-				*stop = YES;
-			}
-		} ];
-	
+		
+	UIView *c;
     for (NSInteger i = 0; i < buttonCount; i++) {
 		UIView *lv = c;
 		c = [UIView new];
+		//c.backgroundColor = [UIColor yellowColor];
+
 		[c setTranslatesAutoresizingMaskIntoConstraints:NO];
-		c.clipsToBounds = NO;
+		c.clipsToBounds = YES;
 		c.tag = i;
 		[self addSubview:c];
-		// c.backgroundColor = i ? [UIColor redColor] : [UIColor greenColor];
+		[enclosingViews addObject:c];
 
         b = [[KOSwipeButton alloc] initWithFrame:CGRectMake(0, 0, buttonWidth, buttonHeight)];
 		b.tag = i;
 		[b setTranslatesAutoresizingMaskIntoConstraints:NO];
-
 		[c addSubview:b];
 		
 		// SET UP IMAGE
 
-		// setup button view first
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0]; // FIX ME
+		// Insure the button never has a negative width
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0];
 		[b addConstraint:lc];
+		// Center it in the containing view
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+		[c addConstraint:lc];
+		// Button height never changes
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:buttonHeight];
 		[b addConstraint:lc];
-		// Top and bottom
+		// Top margin never changes
 		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeTop multiplier:1 constant:verticalMargin];
+		[c addConstraint:lc];
+		// Container pinned to bottom ...
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
+		[self addConstraint:lc];
+		// ... and top of the Keyboard Row
+		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTop multiplier:1 constant:0];
+		[self addConstraint:lc];
+
+		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeLeading multiplier:1 constant:buttonSpacing/2];
+		lc.priority = UILayoutPriorityRequired - 2;
 		[c addConstraint:lc];
 	
 		// left
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationLessThanOrEqual toItem:c attribute:NSLayoutAttributeLeading multiplier:1 constant:buttonSpacing/2];
-		lc.priority = 800;
-		[c addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:b attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
-		[c addConstraint:lc];
-
-		// PLACE VIEW IN SUPERVIEW
-
-		NSUInteger margin = i ? 0 : horzMargin;
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:lv attribute:i?NSLayoutAttributeTrailing:NSLayoutAttributeLeading multiplier:1 constant:margin];
-		[self addConstraint:lc];
-		lc = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:c attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
-		[self addConstraint:lc];
-
-		lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTop multiplier:1 constant:0];
-		[self addConstraint:lc];
+		if(lv) {
+			lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:lv attribute:NSLayoutAttributeTrailing multiplier:1 constant:0];
+			[self addConstraint:lc];
+		}
 		
-
         b.keys = [_keys substringWithRange:NSMakeRange(i * 5, 5)];
 		b.delegate = self;
-
     }
-	lc = [NSLayoutConstraint constraintWithItem:c attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTrailing multiplier:1 constant:-horzMargin];
-	[self addConstraint:lc];
-
-	UIView *firstCommonView = [((UIView *)(self.subviews[firstCommonIndex])).subviews lastObject];
-	assert(firstCommonView);
+	// Pin to self
+	{
+		UIView *v;
+		
+		v = [enclosingViews firstObject];
+		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeLeading multiplier:1 constant:horzMargin];
+		[self addConstraint:lc];
 	
-	[self.subviews enumerateObjectsUsingBlock:^(UIView *enclosingView, NSUInteger idx, BOOL *stop)
+		v = [enclosingViews lastObject];
+		lc = [NSLayoutConstraint constraintWithItem:v attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTrailing multiplier:1 constant:-horzMargin];
+		[self addConstraint:lc];
+	}
+
+	// should really test for cursor control since need a "normal" view
+	UIView *firstPortraitView	= enclosingViews[ [_portraitSet firstIndex] ];
+	UIView *firstLandscapeView	= enclosingViews[ [_landscapeSet firstIndex] ];
+	KOSwipeButton *firstPortraitButton = [firstPortraitView.subviews lastObject];
+	KOSwipeButton *firstLandscapeButton = [firstLandscapeView.subviews lastObject];
+	assert(firstPortraitButton);
+	assert(firstLandscapeButton);
+	
+	[enclosingViews enumerateObjectsUsingBlock:^(UIView *enclosingView, NSUInteger idx, BOOL *stop)
 		{
 			//NSLog(@"BUTTON: %@ subviews: %@", enclosingView, enclosingView.subviews);
 			KOSwipeButton *button = [enclosingView.subviews lastObject];
 			assert(button);
+
 			NSLayoutConstraint *le;
 			if([button isTrackingPoint]) {
 				le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:0 multiplier:1 constant:button.bounds.size.height];
+				le.priority = UILayoutPriorityRequired - 1;
+				[button addConstraint:le];
 			} else {
-				le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstCommonView attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+				if([_portraitSet containsIndex:idx] && enclosingView != firstPortraitView) {
+					le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstPortraitButton attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+					le.priority = UILayoutPriorityRequired - 1;
+					[self addConstraint:le];
+				}
+				if([_landscapeSet containsIndex:idx] && enclosingView != firstLandscapeView) {
+					le = [NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:firstLandscapeButton attribute:NSLayoutAttributeWidth multiplier:1 constant:0];
+					le.priority = UILayoutPriorityRequired - 1;
+					[self addConstraint:le];
+				}
 			}
-			le.priority = UILayoutPriorityRequired - 1;
-			NSLayoutConstraint *l0 = [NSLayoutConstraint constraintWithItem:enclosingView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:nil attribute:0 multiplier:1 constant:10000];
-			
-			[self addConstraint:le];
-			[self addConstraint:l0];
-			[constraints addObject:l0];
+
+			NSLayoutConstraint *l0 = [NSLayoutConstraint constraintWithItem:enclosingView attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationLessThanOrEqual toItem:nil attribute:0 multiplier:1 constant:0];
+			[enclosingView addConstraint:l0];
+			if([_portraitSet containsIndex:idx]) [pConstraints addObject:l0];
+			if([_landscapeSet containsIndex:idx]) [lConstraints addObject:l0];
 		} ];
 	
 	UIInterfaceOrientation interfaceOrientation = [[UIApplication sharedApplication] statusBarOrientation];
 	[self switchToOrientation:interfaceOrientation];
 
-	CGFloat height = isRetina ? 0.5f : 1;
-
 #if 0 // we get this "for free" now
+	CGFloat height = isRetina ? 0.5f : 1;
     UIView *border1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, barWidth, height)];
 	border1.tag = 100;
     border1.backgroundColor = [UIColor colorWithRed:51/255. green:51/255. blue:51/255. alpha:1.];
@@ -229,13 +264,15 @@ static BOOL isRetina;
 //    [self insertSubview:border1 atIndex:0];
 #endif
 
+#if 1
+	CGFloat height = isRetina ? 0.5f : 1;
     UIView *border2 = [[UIView alloc] initWithFrame:CGRectMake(0, barHeight-height, barWidth, height)];
 	border2.tag = 102;
     border2.backgroundColor = [UIColor colorWithWhite:0.7 alpha:1.];
     border2.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [self insertSubview:border2 atIndex:1];
-
-	self.barTintColor = [CreateButton backgroundColorForType:UIKeyboardAppearanceLight];
+    [self insertSubview:border2 atIndex:firstIdx];
+#endif
+	//self.tintColor = [CreateButton backgroundColorForType:UIKeyboardAppearanceLight]; // barTintColor
 }
 
 - (void)setFrame:(CGRect)frame
@@ -260,22 +297,48 @@ static BOOL isRetina;
 - (void)switchToOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
 	BOOL isPortrait = UIInterfaceOrientationIsPortrait(interfaceOrientation);
-	NSIndexSet *set = isPortrait ? _portraitSet : _landscapeSet;
+	NSSet *oldSet = isPortrait ? lConstraints : pConstraints;
+	NSSet *newSet = isPortrait ? pConstraints : lConstraints;
 
-	[constraints enumerateObjectsUsingBlock:^(NSLayoutConstraint *lc, NSUInteger idx, BOOL *stop)
-		{
-			if(!idx) return;	// index 0 is special
-			UIView *c = lc.firstItem;
+	[oldSet enumerateObjectsUsingBlock:^(NSLayoutConstraint *lc, BOOL *stop)
+	{
+		if([newSet containsObject:lc]) return;
 
-			if([set containsIndex:idx]) {
-				lc.constant = 10000;
-				c.clipsToBounds = NO;
-			} else {
-				lc.constant = 0;
-				c.clipsToBounds = YES;
-			}
-		} ];
+		UIView *c = lc.firstItem;
+		lc.constant = 0;
+		c.clipsToBounds = YES;
+	} ];
+	[newSet enumerateObjectsUsingBlock:^(NSLayoutConstraint *lc, BOOL *stop)
+	{
+		UIView *c = lc.firstItem;
+		lc.constant = 10000;
+		c.clipsToBounds = NO;
+	} ];
+
 	[self needsUpdateConstraints];
+}
+
+-(void)updateConstraints
+{
+	[super updateConstraints];
+	
+	//NSLog(@"updateConstraints");
+	NSAssert(![self hasAmbiguousLayout], @"FOO");
+	//[self performSelector:@selector(_autolayoutTrace)];
+	//NSLog(@"CONSTRAINTS: %@", self.constraints);
+	//NSLog(@"%@", [[[UIApplication sharedApplication] keyWindow] performSelector:@selector(_autolayoutTrace)]);
+}
+
+- (void)layoutSubviews
+{
+	[super layoutSubviews];
+
+#if 0
+	NSLog(@"layoutSubviews");
+	[self.subviews enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		NSLog(@"View[%d]  = %@ sub %@", [obj tag], NSStringFromCGRect([obj frame]), NSStringFromCGRect([[[obj subviews] lastObject] frame]));
+	}];
+#endif
 }
 
 - (BOOL)enableInputClicksWhenVisible
@@ -356,7 +419,6 @@ static BOOL isRetina;
 
 - (void)trackPointEnded
 {
-//NSLog(@"FUCK!");
 	UITextRange *r = [_koDelegate selectedTextRange];
 	if(!r.empty) {
 		// need to defer this or the menu stops the button unhiliting

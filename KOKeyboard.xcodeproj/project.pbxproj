@@ -26,6 +26,7 @@
 		DE98036F181C864900ABE541 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = DE98036D181C864900ABE541 /* LICENSE */; };
 		DE980370181C864900ABE541 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = DE98036E181C864900ABE541 /* README.md */; };
 		DEA98A7A1820198B00A273DE /* CreateButton.m in Sources */ = {isa = PBXBuildFile; fileRef = DEA98A791820198B00A273DE /* CreateButton.m */; };
+		DED2F6F1187361E700BE4E82 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DED2F6F0187361E700BE4E82 /* QuartzCore.framework */; };
 		DEF0FACF18494FA600A24442 /* KOKeyboard.png in Resources */ = {isa = PBXBuildFile; fileRef = DEF0FACE18494FA600A24442 /* KOKeyboard.png */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +59,7 @@
 		DE980371181CA9AA00ABE541 /* KOProtocol.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = KOProtocol.h; sourceTree = "<group>"; };
 		DEA98A781820198B00A273DE /* CreateButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateButton.h; sourceTree = "<group>"; };
 		DEA98A791820198B00A273DE /* CreateButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CreateButton.m; sourceTree = "<group>"; };
+		DED2F6F0187361E700BE4E82 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		DEF0FACE18494FA600A24442 /* KOKeyboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = KOKeyboard.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -66,6 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DED2F6F1187361E700BE4E82 /* QuartzCore.framework in Frameworks */,
 				665C982815CC2C91001B6908 /* UIKit.framework in Frameworks */,
 				665C982A15CC2C91001B6908 /* Foundation.framework in Frameworks */,
 				665C982C15CC2C91001B6908 /* CoreGraphics.framework in Frameworks */,
@@ -98,6 +101,7 @@
 		665C982615CC2C91001B6908 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DED2F6F0187361E700BE4E82 /* QuartzCore.framework */,
 				665C982715CC2C91001B6908 /* UIKit.framework */,
 				665C982915CC2C91001B6908 /* Foundation.framework */,
 				665C982B15CC2C91001B6908 /* CoreGraphics.framework */,

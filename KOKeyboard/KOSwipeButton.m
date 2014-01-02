@@ -174,15 +174,14 @@
     for (int i = 0; i < MIN(newKeys.length, 5); i++) {
         [[labels objectAtIndex:i] setText:[newKeys substringWithRange:NSMakeRange(i, 1)]];
         
-        if ([[newKeys substringToIndex:1] isEqualToString:@"◉"] |
-            [[newKeys substringToIndex:1] isEqualToString:@"T"]) {
+        if ([[newKeys substringToIndex:1] isEqualToString:@"◉"] || [[newKeys substringToIndex:1] isEqualToString:@"T"]) {
             
             trackPoint = [[newKeys substringToIndex:1] isEqualToString:@"◉"];
             tabButton = [[newKeys substringToIndex:1] isEqualToString:@"T"];
             
-            if (i != 2)
+            if (i != 2) {
                 [[labels objectAtIndex:i] setHidden:YES];
-            else {
+            } else {
                 if (trackPoint) {
                     [[labels objectAtIndex:i] setHidden:YES];
                     //[[labels objectAtIndex:i] setFont:[UIFont systemFontOfSize:20]];
