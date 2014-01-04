@@ -78,7 +78,11 @@
 	kov.landscapeSet = landscapeSet; // portraitSet landscapeSet;
 	[kov setup];
 
-	[textView becomeFirstResponder];
+dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC), dispatch_get_main_queue(), ^
+    {
+		[textView becomeFirstResponder];
+    } );
+
 }
 
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation duration:(NSTimeInterval)duration
